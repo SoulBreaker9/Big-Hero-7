@@ -16,24 +16,33 @@ const SINK = 0.16 // how far the surface drops when the clay is fully squeezed (
 const SAT = [3.0, 2.35] // centre of NISAR's reflector, right of and above the block
 const SAT_SCALE = 0.12 // scene units per metre: far larger than life next to a 134 km block
 
-// One camera/underground state per story section: azimuth°, polar°, distance, water table y, layer, sink, breath
+// One camera/underground state per story section. The block alternates sides, always opposite the text panel (see data-side in App).
+// azimuth°, polar°, distance, water table y, layer, sink, breath, x offset (share of width, negative = block on the right), look-at y
 const K = [
-  [35, 60, 16.5, -0.3, 0, 0, 0.25], // hero
-  [22, 78, 15, -0.98, 0, 0, 0], // pumps: side on, water falls
-  [-24, 80, 14.5, -1.08, 0, 1, 0], // clay: squeezed, surface sinks
-  [-12, 38, 15.5, -1.08, 1, 1, 0], // blind spot: interferograms on top
-  [0, 26, 15, -1.08, 0, 1, 0], // the year
-  [38, 70, 16.5, -0.7, 0, 0.5, 1], // the test: breathing
-  [0, 2, 14, -0.7, 0, 0.5, 0], // explorer: straight down, north up
+  [35, 60, 16.5, -0.3, 0, 0, 0.25, -0.2, -0.55], // hero: block right
+  [-28, 76, 13.5, -0.98, 0, 0, 0, 0.2, -0.75], // overdraft: block left, closer, water falls
+  [24, 82, 11.5, -1.08, 0, 1, 0, -0.2, -0.7], // sand and clay: block right, closest
+  [34, 40, 15.5, -1.08, 1, 1, 0, 0.27, -0.55], // blind spot: interferograms on top
+  [0, 26, 15, -1.08, 0, 1, 0, -0.2, -0.55], // the year: block right
+  [-38, 70, 16.5, -0.7, 0, 0.5, 1, 0.2, -0.55], // the test: block left, breathing
+  [0, 2, 14, -0.7, 0, 0.5, 0, -0.2, -0.55], // explorer: straight down, block right
 ]
+const INTRO = [80, 34, 34, -0.3, 0, 0, 0.25, -0.2, -0.55] // where the camera waits behind the loader
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 const coarse = window.matchMedia('(pointer: coarse)').matches
 const stats = new URLSearchParams(location.search).has('stats')
+const ramp = (t: number) => t * t * (3 - 2 * t)
+
+// the loader reads these: the code has arrived, and how much of the model and images has been fetched
+// (total grows as the glTF's embedded textures are found, so the share can dip; Loader never counts backwards)
+useStore.setState({ chunk: true })
+THREE.DefaultLoadingManager.onProgress = (_url, loaded, total) => useStore.setState({ load: loaded / total })
 const smooth = (t: number) => { const x = Math.min(Math.max((t - 0.25) / 0.5, 0), 1); return x * x * (3 - 2 * x) }
 // custom shaders write display values straight through, so their colours are plain sRGB triplets
 const rgb = (hex: number) => new THREE.Vector3((hex >> 16) / 255, ((hex >> 8) & 255) / 255, (hex & 255) / 255)
-const INK = 0x2a1533, WATER = 0x2c6fc4, PADDY = 0xb4148c, CLAY = 0x9d8076, SQUEEZED = 0x5c3f4d, STEEL = 0xb9b4bb
+const INK = 0x2a1533, MOON = 0xf1ecf3, WATER = 0x2c6fc4, PADDY = 0xb4148c, CLAY = 0x9d8076, SQUEEZED = 0x5c3f4d, STEEL = 0xb9b4bb
+const INK_C = new THREE.Color(INK), MOON_C = new THREE.Color(MOON)
 
 // one sun and a sky for everything drawn by hand, matching the studio the satellite is lit in
 const lit = /* glsl */ `
@@ -154,8 +163,8 @@ void main() {
 }`
 
 const shadowFrag = /* glsl */ `
-uniform vec3 uA; varying vec3 vP;
-void main() { gl_FragColor = vec4(uA, 0.3 * smoothstep(1.0, 0.25, length(vP.xy) / 3.6)); }`
+uniform vec3 uA; uniform float uOn; varying vec3 vP;
+void main() { gl_FragColor = vec4(uA, uOn * 0.3 * smoothstep(1.0, 0.25, length(vP.xy) / 3.6)); }`
 
 /** Seeded so the illustration is the same on every load. blender/build.py runs the same sequence. */
 function mulberry(seed: number) {
@@ -170,7 +179,8 @@ function World() {
   const slab = useRef<THREE.Group>(null!)
   const water = useRef<THREE.Mesh>(null!)
   const sat = useRef<THREE.Group>(null!)
-  const cur = useRef({ k: [...K[0]], pass: 0, pair: 0, t: 0 })
+  const cur = useRef({ k: [...INTRO], pass: 0, pair: 0, t: 0, frames: 0, intro: 0, night: 1, px: 0, py: 0 })
+  const pointer = useRef([0, 0])
 
   // geometries and materials are built once and shared
   const g = useMemo(() => {
@@ -205,7 +215,7 @@ function World() {
       waterMat: shader(waterVert, waterFrag, { uA: rgb(WATER), uT: 0, uLevel: 0 }, { transparent: true, depthWrite: false }),
       beamGeo: new THREE.BufferGeometry().setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, -SIZE / 2 - SAT[0], -SAT[1], 0, SIZE / 2 - SAT[0], -SAT[1], 0]), 3)),
       beamMat: shader(beamVert, beamFrag, { uA: rgb(PADDY), uT: 0, uOn: 1 }, { transparent: true, side: THREE.DoubleSide, depthWrite: false }),
-      shadowMat: shader(slabVert, shadowFrag, { uA: rgb(INK) }, { transparent: true, depthWrite: false }),
+      shadowMat: shader(slabVert, shadowFrag, { uA: rgb(INK), uOn: 1 }, { transparent: true, depthWrite: false }),
     }
   }, [back, phase, strataTex, nodes])
 
@@ -217,8 +227,11 @@ function World() {
     const wake = () => invalidate()
     const off = useStore.subscribe(wake)
     document.addEventListener('visibilitychange', wake)
-    useStore.setState({ ready: true })
-    return () => { off(); document.removeEventListener('visibilitychange', wake) }
+    // frames must be produced while the loader is up, so ready can mean "frames are on screen"
+    invalidate()
+    const move = (e: PointerEvent) => { pointer.current = [(e.clientX / innerWidth) * 2 - 1, (e.clientY / innerHeight) * 2 - 1]; invalidate() }
+    if (!coarse && !reducedMotion) addEventListener('pointermove', move, { passive: true })
+    return () => { off(); document.removeEventListener('visibilitychange', wake); removeEventListener('pointermove', move) }
   }, [invalidate])
 
   const hud = useMemo(() => (stats ? document.getElementById('stats') : null), [])
@@ -228,15 +241,19 @@ function World() {
     const st = useStore.getState()
     const c = cur.current
     const dt = Math.min(delta, 0.05) // a frame after an idle spell must not jump
-    const ease = 1 - Math.exp(-dt * 5)
+    // frames on screen: after the third, the loader may finish
+    if (c.frames < 3 && ++c.frames === 3) requestAnimationFrame(() => useStore.setState({ ready: true }))
+    if (st.revealed && c.intro < 1) c.intro = reducedMotion ? 1 : Math.min(c.intro + dt / 2.4, 1) // the fly-in, eased slowly then normally
+    const ease = 1 - Math.exp(-dt * (reducedMotion ? 5 : 1.8 + 3.2 * ramp(c.intro)))
     const f = Math.min(Math.max(st.s, 0), K.length - 1)
     const i = Math.min(Math.floor(f), K.length - 2)
     const mix = smooth(f - i)
     const exploring = f > K.length - 1.5
     let moving = 0
-    for (let j = 0; j < 7; j++) {
+    for (let j = 0; j < 9; j++) {
       let target = K[i][j] + (K[i + 1][j] - K[i][j]) * mix
       if (j === 4 && exploring) target = st.layer
+      if (!st.revealed) target = INTRO[j]
       moving = Math.max(moving, Math.abs(target - c.k[j]) / (j < 3 ? 40 : 1))
       c.k[j] += (target - c.k[j]) * ease
     }
@@ -246,13 +263,23 @@ function World() {
     const ambient = !reducedMotion && !st.covered && document.visibilityState === 'visible'
     if (ambient) c.t += dt
 
-    const [az, pol, dist, waterY, layer, sink, breath] = c.k
+    const [az0, pol0, dist, waterY, layer, sink, breath, ox, ty] = c.k
+    // never still: a slow sway and a nudge toward the pointer, switched off while the map is being read
+    const alive = reducedMotion || exploring ? 0 : 1
+    c.px += (pointer.current[0] - c.px) * ease
+    c.py += (pointer.current[1] - c.py) * ease
+    const az = az0 + alive * (2.5 * Math.sin(c.t * 0.3) + c.px * 3), pol = pol0 + alive * c.py * 1.5
     const portrait = size.width < size.height * 0.85
     const r = dist * (portrait ? 1.55 : 1), a = (az * Math.PI) / 180, p = (pol * Math.PI) / 180
-    camera.position.set(r * Math.sin(p) * Math.sin(a), r * Math.cos(p) - 0.55, r * Math.sin(p) * Math.cos(a))
-    camera.lookAt(0, -0.55, 0)
-    // keep the block clear of the text: to the right on wide screens, up top on tall ones
-    ;(camera as THREE.PerspectiveCamera).setViewOffset(size.width, size.height, portrait ? 0 : -0.2 * size.width, portrait ? 0.2 * size.height : 0, size.width, size.height)
+    camera.position.set(r * Math.sin(p) * Math.sin(a), r * Math.cos(p) + ty, r * Math.sin(p) * Math.cos(a))
+    camera.lookAt(0, ty, 0)
+    // keep the block clear of the text: opposite the panel on wide screens, up top on tall ones
+    ;(camera as THREE.PerspectiveCamera).setViewOffset(size.width, size.height, portrait ? 0 : ox * size.width, portrait ? 0.2 * size.height : 0, size.width, size.height)
+
+    // parts 0 and 1 are night: the outline turns moonlight and the ground shadow goes
+    c.night += ((f < 3.5 ? 1 : 0) - c.night) * ease
+    ;(g.frame.material as THREE.LineBasicMaterial).color.copy(INK_C).lerp(MOON_C, c.night)
+    g.shadowMat.uniforms.uOn.value = 1 - c.night
 
     const swell = breath * Math.sin(c.t * 1.1) // the seasonal rise and fall, sped up
     const top = (slab.current.position.y = -SINK * sink + 0.05 * swell)
@@ -278,8 +305,8 @@ function World() {
     su.uPin.value.set(...(st.pin ?? [-9, -9]))
     su.uHover.value.set(...(st.hover ?? [-9, -9]))
 
-    if (moving > 0.02) regress() // drop resolution while the camera travels, AdaptiveDpr restores it
-    if (ambient || moving > 0.0005) invalidate()
+    if (moving > 0.02 && c.intro >= 1) regress() // drop resolution while the camera travels, AdaptiveDpr restores it
+    if (ambient || moving > 0.0005 || c.frames < 3 || (st.revealed && c.intro < 1) || Math.abs(c.night - (f < 3.5 ? 1 : 0)) > 0.002) invalidate()
     if (hud) {
       const s = fps.current
       if (++s.n && performance.now() - s.t > 500) { s.v = Math.round((s.n * 1000) / (performance.now() - s.t)); s.n = 0; s.t = performance.now() }

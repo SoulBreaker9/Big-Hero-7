@@ -88,6 +88,7 @@ Limit to be honest about: quicklooks are 8-bit display images. The colour compos
 
 - **Name**: Saah, ਸਾਹ, Punjabi for breath. The whole story is one metaphor: an aquifer that breathes or has stopped.
 - **One bold thing**: a floating cutaway block. The top is the real radar image; underneath is an illustrated aquifer with wells, a water table and clay lenses. Everything else is quiet. Since 14 Nov it is built as a physical exhibit: sediment layers on the cut faces, bedrock underneath, water with a surface, and NISAR modelled in Blender to its published proportions (`blender/build.py`, see PROJECT_EXPLAINED.md).
+- **The page starts at night and day breaks** (14 Nov): NISAR crosses at 05:43, so parts 0 and 1 sit on a night sky, parts 2 and 3 on dawn, parts 4 to 6 on day. Ink flips from light to plum between parts 3 and 4, hidden by the panel fade. The block alternates sides, always opposite the text, and drifts and follows the pointer slightly. A loader with a real 000 to 100 counter covers the first load and lifts only once the scene has drawn frames.
 - **Palette comes from the data**: the quicklooks are magenta (HH) and green (HV) on black, so the page is cool haze with plum ink, magenta for HH and green for HV.
 - **Type**: Anek Latin (variable width axis, condensed for headlines) with Anek Gurmukhi for the wordmark. An Indian type family for an Indian subject.
 - **Inspiration gathered in Chrome** from current Awwwards sites of the day: ZIRKA Interceptor (instrument-strip header, tick ruler as progress), Igloo Inc (one object floating in fog), Lusion, Chartogne-Taillet, Cyera AI Guardian. What was taken: the HUD strip, the ruler of real pass dates, the single floating diorama.
@@ -96,6 +97,8 @@ Limit to be honest about: quicklooks are 8-bit display images. The colour compos
 ## 7. The performance checklist, item by item
 
 Applied: `frameloop="demand"` with `invalidate()`; instanced wells and clay; Suspense and lazy-loaded scene; `PerformanceMonitor`, `AdaptiveDpr`, `AdaptiveEvents`; `dpr` clamped to 1 to 1.5; satellite merged into one mesh in Blender; shared geometries and materials in `useMemo`; hand-written lighting in the block's shaders, one light and one small environment map for the satellite, no shadow maps, no post-processing; refs mutated in `useFrame`, never `setState`; manual disposal; a web worker with `OffscreenCanvas` for pixel readback; `powerPreference: high-performance`, antialias off on touch devices; code splitting with `React.lazy`; `React.memo` on the chart; Zustand with selectors and transient subscriptions; Vite with minification; Brotli and immutable cache headers on hashed assets (confirmed on the live site); font preload; WebP images; canvas mounted after first paint.
+
+Also applied (14 Nov): Lenis for wheel scrolling and GSAP ScrollTrigger for text motion, on one shared ticker (+52 KB gzipped in the main chunk). Not added: Framer Motion, a second WebGL canvas, animated blur.
 
 Skipped, with reasons:
 
@@ -107,9 +110,8 @@ Skipped, with reasons:
 | Virtualised lists | The longest list is 24 rows |
 | `useTransition` / `useDeferredValue` | Nothing on the page is slow to render |
 | Preconnect | No third-party origins; fonts are self-hosted |
-| Lenis, GSAP | Native scroll plus one damped lerp in the render loop does the job |
 
-Measured: 78 KB gzipped JS before the 3D chunk, 288 KB for the 3D chunk, 8 to 21 draw calls, about 19,500 triangles, 60 fps at 1600×900 in headless Chromium on a laptop RTX 4050 (14 Nov, after the Blender model went in; the Lighthouse figures that follow are from before it). Lighthouse mobile on the live site: accessibility 100, best practices 100, LCP 1.2 s, CLS 0.02. Total blocking time was 2.5 s, but that run used a software renderer with 4× CPU throttling and is not a real-device number. **Frame rate on a real GPU has not been measured.**
+Measured: 130 KB gzipped JS before the 3D chunk (78 KB before Lenis and GSAP), 289 KB for the 3D chunk, 8 to 21 draw calls, about 19,500 triangles, 60 fps at 1600×900 in headless Chromium on a laptop RTX 4050 (14 Nov, after the Blender model went in; the Lighthouse figures that follow are from before it). Lighthouse mobile on the live site: accessibility 100, best practices 100, LCP 1.2 s, CLS 0.02. Total blocking time was 2.5 s, but that run used a software renderer with 4× CPU throttling and is not a real-device number. **Frame rate on a real GPU has not been measured.**
 
 ## 8. What to do during the hackathon, in order
 

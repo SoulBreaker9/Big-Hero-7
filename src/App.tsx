@@ -1,7 +1,12 @@
-import { Component, lazy, Suspense, useEffect, useState, type ReactNode } from 'react'
+import { useGSAP } from '@gsap/react'
+import { Component, lazy, Suspense, useEffect, type CSSProperties, type ReactNode } from 'react'
+import { Count, Read, Rise } from './bits'
 import Chart from './Chart'
 import Explorer from './Explorer'
 import Hud from './Hud'
+import Loader from './Loader'
+import { gsap, ScrollTrigger, startScroll, WIDE } from './motion'
+import Waves from './Waves'
 import { LAST, pairOf, pairs, passes, useStore } from './store'
 
 const Scene = lazy(() => import('./scene/Scene'))
@@ -12,6 +17,7 @@ const peak = passes[meanHH.indexOf(Math.max(...meanHH))]
 class NoScene extends Component<{ children: ReactNode }, { failed: boolean }> {
   state = { failed: false }
   static getDerivedStateFromError() { return { failed: true } }
+  componentDidCatch() { useStore.setState({ ready: true }) } // release the loader: the story reads without the 3D block
   render() { return this.state.failed ? null : this.props.children }
 }
 
@@ -31,6 +37,8 @@ function useScrollStory() {
       const explore = i === els.length - 1
       const pass = explore ? userPass : i < 4 ? 0 : i === 4 ? run * LAST : LAST
       const pair = explore ? pairOf(userPass) : i < 3 ? 0 : i === 3 ? run * (pairs.length - 1) : pairs.length - 1
+      const sky = i < 2 ? 'night' : i < 4 ? 'dawn' : 'day' // NISAR crosses at 05:43: the page starts at night and day breaks
+      if (document.documentElement.dataset.sky !== sky) document.documentElement.dataset.sky = sky
       useStore.setState({ s: i + local - 0.5, pass, pair, covered: rects[els.length - 1].bottom < 0 })
     }
     const onScroll = () => { queued ||= requestAnimationFrame(read) }
@@ -43,83 +51,107 @@ function useScrollStory() {
 
 export default function App() {
   const ready = useStore((s) => s.ready)
-  const [mount, setMount] = useState(false)
+  const revealed = useStore((s) => s.revealed)
   useScrollStory()
-  // the headline paints first; three.js is fetched only once the browser is idle
   useEffect(() => {
-    const idle = window.requestIdleCallback ?? ((f: () => void) => setTimeout(f, 200))
-    idle(() => setMount(true))
+    if (!location.hash) { history.scrollRestoration = 'manual'; scrollTo(0, 0) } // the fly-in is always seen from the top
+    const off = startScroll()
+    document.fonts.ready.then(() => ScrollTrigger.refresh()) // headline metrics change when Anek arrives
+    return off
   }, [])
+
+  // text panels: each fades in as its section arrives and out as it leaves, so one thought is on screen at a time.
+  // Enter and exit animate different elements, because two scrubbed tweens on one opacity fight.
+  useGSAP(() => {
+    const mm = gsap.matchMedia()
+    mm.add(`${WIDE} and (prefers-reduced-motion: no-preference)`, () => {
+      gsap.utils.toArray<HTMLElement>('[data-scene]').forEach((sec, i, all) => {
+        const panel = sec.querySelector('.panel')!, body = sec.querySelector('.panel-body')!
+        if (i) gsap.fromTo(body, { autoAlpha: 0, y: 60 }, { autoAlpha: 1, y: 0, ease: 'none', scrollTrigger: { trigger: sec, start: 'top 62%', end: 'top 30%', scrub: true } })
+        if (i < all.length - 1) gsap.fromTo(panel, { autoAlpha: 1, y: 0 }, { autoAlpha: 0, y: -40, ease: 'none', immediateRender: false, scrollTrigger: { trigger: sec, start: 'bottom 85%', end: 'bottom 52%', scrub: true } })
+      })
+    })
+    mm.add(`not ${WIDE} and (prefers-reduced-motion: no-preference)`, () => {
+      gsap.utils.toArray<HTMLElement>('[data-scene] .panel').forEach((p, i) => { if (i) gsap.from(p, { autoAlpha: 0, y: 40, duration: 0.7, ease: 'power3.out', scrollTrigger: { trigger: p, start: 'top 88%', once: true } }) })
+    })
+  })
+
+  const peakDate = new Date(peak.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
+  const year = `Scroll through all 24 passes. Until July the plain is dark. From mid-August it turns magenta: the HH echo climbs from about ${Math.round(meanHH[0])} to ${Math.round(Math.max(...meanHH))} by ${peakDate}, while the HV echo barely moves.`
+  const fade = (d: number): CSSProperties => ({ '--d': d } as CSSProperties)
 
   return (
     <>
+      <Loader />
+      <div className="sky" aria-hidden="true"><i className="night" /><i className="dawn" /><i className="day" /></div>
       <Hud />
       <div className={ready ? 'stage on' : 'stage'}>
-        {mount && <NoScene><Suspense fallback={null}><Scene /></Suspense></NoScene>}
+        <NoScene><Suspense fallback={null}><Scene /></Suspense></NoScene>
       </div>
-      {!ready && <p className="loading note" role="status">Loading 4 MB of radar images and the NISAR model</p>}
 
-      <main id="top">
-        <section data-scene className="hero">
-          <div className="panel">
-            <p className="gloss"><span lang="pa" className="breath">ਸਾਹ</span> saah, Punjabi for breath</p>
-            <h1>Is Punjab’s ground still breathing?</h1>
+      <main id="top" className={revealed ? 'revealed' : undefined}>
+        <section data-scene data-side="left" className="hero">
+          <div className="panel"><div className="panel-body">
+            <p className="gloss fade" style={fade(0)}><span lang="pa" className="breath">ਸਾਹ</span> saah, Punjabi for breath</p>
+            <Rise as="h1" play={revealed}>Is Punjab’s ground still breathing?</Rise>
             <p className="lede">Every twelve days since November 2025, the NISAR radar satellite has crossed the fields of Punjab just before dawn. This is one year of what it saw, and the question it can finally answer: when the monsoon refills the aquifer, does the land rise back?</p>
-            <p className="actions"><a className="button" href="#year">Watch the year</a><a href="#explore">Open the explorer</a></p>
-            <p className="note">The top of the block is a real NISAR image, 134 km across. The underground is an illustration, not to scale.</p>
-          </div>
+            <p className="actions fade" style={fade(1)}><a className="button" href="#year">Watch the year</a><a href="#explore">Open the explorer</a></p>
+            <p className="note fade" style={fade(2)}>The top of the block is a real NISAR image, 134 km across. The underground is an illustration, not to scale.</p>
+            <p className="cue note fade" style={fade(3)}>Scroll to follow one year of passes</p>
+          </div></div>
         </section>
 
-        <section data-scene>
-          <div className="panel">
-            <h2>Punjab pumps 164 litres for every 100 it can replace</h2>
-            <p>India’s Central Ground Water Board counted 27.8 billion cubic metres pumped from under Punjab in 2023, against 17 billion that rain and canals can safely put back. Most of it irrigates rice and wheat.</p>
+        <section data-scene data-side="right">
+          <div className="panel"><div className="panel-body">
+            <Rise>Punjab pumps <Count from={100} to={164} /> litres for every 100 it can replace</Rise>
+            <Read>India’s Central Ground Water Board counted 27.8 billion cubic metres pumped from under Punjab in 2023, against 17 billion that rain and canals can safely put back. Most of it irrigates rice and wheat.</Read>
             <p>Across north India about 450 cubic kilometres of groundwater disappeared between 2002 and 2021. As the water table falls, shallow wells run dry and farmers drill deeper to follow it.</p>
             <p className="note">Blue wells still reach water. Grey ones have run dry.</p>
-          </div>
+          </div></div>
         </section>
 
-        <section data-scene>
-          <div className="panel">
-            <h2>Sand springs back. Clay does not.</h2>
-            <p>An aquifer is layers of sand with lenses of clay between them. Drain the sand and it relaxes; refill it and it swells again, so the ground above rises and falls with the seasons like a chest.</p>
+        <section data-scene data-side="left">
+          <div className="panel"><div className="panel-body">
+            <Rise>Sand springs back. Clay does not.</Rise>
+            <Read>An aquifer is layers of sand with lenses of clay between them. Drain the sand and it relaxes; refill it and it swells again, so the ground above rises and falls with the seasons like a chest.</Read>
             <p>Drain a clay layer and it is squeezed flat for good. The land sinks and that storage space never comes back, however much it rains. Worldwide about 17 cubic kilometres of aquifer are lost this way every year, and roughly 60% of the sinking land is cropland.</p>
             <p className="note">The outline marks the old ground level. Sinking is exaggerated so you can see it.</p>
-          </div>
+          </div></div>
         </section>
 
-        <section data-scene className="tall">
-          <div className="panel">
-            <h2>Radar watched India’s cities sink. It could not see the fields.</h2>
-            <p>Older radar satellites use a 5.6 cm wave. It found Kapashera, beside Delhi’s airport, sinking about 17 cm a year. But a wave that short is scrambled by growing crops, so those maps go blank where the farms begin, which is where the water is pumped.</p>
+        <section data-scene data-side="right" className="tall">
+          <div className="panel"><div className="panel-body">
+            <Rise>Radar watched India’s cities sink. It could not see the fields.</Rise>
+            <Read>Older radar satellites use a 5.6 cm wave. It found Kapashera, beside Delhi’s airport, sinking about 17 cm a year. But a wave that short is scrambled by growing crops, so those maps go blank where the farms begin, which is where the water is pumped.</Read>
             <p>NISAR’s L-band wave is 24 cm long and passes through the crop to the soil. Keep scrolling: these are 21 real twelve-day comparisons of this farmland, and the colour bands run unbroken across it in every one.</p>
+            <Waves />
             <p className="note">One full colour cycle is about 12 cm along the radar’s line of sight. Most of what you see is atmosphere and orbit, not ground motion. Telling them apart is the work.</p>
-          </div>
+          </div></div>
         </section>
 
-        <section data-scene className="taller" id="year">
-          <div className="panel">
-            <h2>From orbit, you can watch the pumping season arrive</h2>
-            <p>Scroll through all 24 passes. Until July the plain is dark. From mid-August it turns magenta: the HH echo climbs from about {Math.round(meanHH[0])} to {Math.round(Math.max(...meanHH))} by {new Date(peak.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })}, while the HV echo barely moves.</p>
+        <section data-scene data-side="left" className="taller" id="year">
+          <div className="panel"><div className="panel-body">
+            <Rise>From orbit, you can watch the pumping season arrive</Rise>
+            <Read>{year}</Read>
             <p>Our reading: rice stems standing in flooded fields bounce the wave off the water and straight back, which brightens HH and not HV. It fades with the October harvest. Those are the months the tubewells run hardest.</p>
             <Chart hh={meanHH} hv={meanHV} title="Average brightness of the whole scene, 0 to 255" />
-          </div>
+          </div></div>
         </section>
 
-        <section data-scene>
-          <div className="panel">
-            <h2>One year of passes, one question for every field</h2>
+        <section data-scene data-side="right">
+          <div className="panel"><div className="panel-body">
+            <Rise>One year of passes, one question for every field</Rise>
             <ol>
               <li>Stack the interferograms into a record of ground height for each 80 m of land.</li>
               <li>Remove the atmosphere and ionosphere, using the correction layers NISAR ships with each file.</li>
               <li>Split what is left into a seasonal rise and fall, which is sand breathing, and a steady drop, which is clay lost for good.</li>
               <li>Line that up with when each field was flooded and with the Board’s well records.</li>
             </ol>
-            <p>The result is a map of where Punjab’s aquifer can still be refilled and where the room is already gone. In Dwarka, Delhi, the ground stopped sinking and began to rise after rainwater harvesting was enforced. Recovery is possible, and visible from space.</p>
-          </div>
+            <Read>The result is a map of where Punjab’s aquifer can still be refilled and where the room is already gone. In Dwarka, Delhi, the ground stopped sinking and began to rise after rainwater harvesting was enforced. Recovery is possible, and visible from space.</Read>
+          </div></div>
         </section>
 
-        <section data-scene className="explore" id="explore">
+        <section data-scene data-side="left" className="explore" id="explore">
           <Explorer />
         </section>
 

@@ -21,8 +21,12 @@ What the site does not do yet is measure the sinking. It shows the pictures, the
 ```
  build time                                   run time (browser, static site)
  ──────────                                   ───────────────────────────────
- ASF search API ─┐                            index.html ─ main chunk (React, 78 KB gz)
- browse PNGs ────┤ scripts/build_data.py       │  App.tsx     text, scroll → store
+ ASF search API ─┐                            index.html ─ main chunk (React, GSAP, Lenis, 130 KB gz)
+ browse PNGs ────┤ scripts/build_data.py       │  App.tsx     text, scroll → store, panel fades
+                                               │  Loader      counter tied to real asset loading
+                                               │  bits.tsx    Rise, Read, Count (text motion)
+                                               │  motion.ts   Lenis on GSAP's ticker
+                                               │  Waves       the two-wavelength diagram
                  ▼                             │  Hud.tsx     header + pass ruler
    src/data/backscatter.webp  (5×5 atlas)      │  Explorer    slider, layer, places, ledger
    src/data/phase.webp        (5×5 atlas)      │  Chart       SVG line chart
@@ -76,7 +80,8 @@ State lives in one Zustand store (`src/store.ts`). Per-frame fields (`s`, `pass`
 | Custom GLSL shaders for the block | Atlas crossfade, the dry-well and squeezed-clay logic, the water table and the wet band on the walls all run on the GPU for free | Standard lit materials: cannot do the per-instance logic |
 | Blender model + PBR for the satellite | NISAR is built by a bpy script from the published numbers (12 m reflector, F/D 0.75, 9 m boom) and lit by a small studio environment, so the gold foil and solar cells look like the real thing | Primitives with baked vertex colours (the first version): read as a toy. NASA's own model: heavier, and not our work |
 | Zustand | Transient reads without re-rendering React | React context: would re-render the tree on every scroll frame |
-| Native scroll + damped lerp | Zero dependencies, respects the browser | Lenis/GSAP ScrollTrigger: 30+ KB for the same feel |
+| Lenis + GSAP ScrollTrigger | Smooth wheel scrolling, headlines that rise word by word, text that lights up as you read it, panels that fade in and out as the story moves. Lenis runs on GSAP's ticker so scroll, tweens and the camera share one frame. Touch stays native. About 52 KB gzipped in the main chunk | The earlier native scroll plus damped lerp: no smoothing, no choreography. Framer Motion: a second animation library for nothing |
+| React Bits, adapted (`src/bits.tsx`) | `SplitText`, `ScrollReveal` and `CountUp` cut to about 60 lines on React-rendered spans, because the originals are 1,300 lines and GSAP's SplitText rewrites DOM that React owns. Credited in the file header (MIT + Commons Clause) | Pasting the originals: more code, and `CountUp` needs the `motion` package |
 | WebP atlases | One request and one texture per layer for 24 images | 24 separate files: 24 requests and texture switches. KTX2: no encoder on the build machine |
 | Web worker + OffscreenCanvas | Decoding a 2560² image and reading pixels stays off the main thread | Main-thread canvas: a visible stall on first click |
 | Python + Pillow pipeline | Runs anywhere, no login, no geospatial stack | rasterio/GDAL: heavier, and quicklooks have no georeferencing to read anyway |

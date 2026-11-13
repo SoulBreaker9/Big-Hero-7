@@ -25,7 +25,7 @@ export default function Explorer() {
   useEffect(() => useStore.subscribe((s) => { if (hover.current) hover.current.textContent = s.hover ? 'Cursor at ' + where(s.hover) : 'Click the scene, or pick a place, to plot it through the year.' }), [])
 
   return (
-    <div className="panel explorer">
+    <div className="panel explorer"><div className="panel-body">
       <h2>Look for yourself</h2>
       <p>Every image here is a real NISAR pass over the same 134 km of Punjab. Drag through the year, switch what the radar measured, and pin any spot.</p>
 
@@ -53,7 +53,7 @@ export default function Explorer() {
 
       <details>
         <summary>All {N} passes and their source files</summary>
-        <div className="ledger">
+        <div className="ledger" data-lenis-prevent>
           <table>
             <thead><tr><th>Date</th><th>Release</th><th>HH</th><th>HV</th><th>NISAR granule</th></tr></thead>
             <tbody>
@@ -67,6 +67,6 @@ export default function Explorer() {
           </table>
         </div>
       </details>
-    </div>
+    </div></div>
   )
 }
