@@ -57,7 +57,7 @@ export default function App() {
       <div className={ready ? 'stage on' : 'stage'}>
         {mount && <NoScene><Suspense fallback={null}><Scene /></Suspense></NoScene>}
       </div>
-      {!ready && <p className="loading note" role="status">Loading 3 MB of radar images</p>}
+      {!ready && <p className="loading note" role="status">Loading 4 MB of radar images and the NISAR model</p>}
 
       <main id="top">
         <section data-scene className="hero">
