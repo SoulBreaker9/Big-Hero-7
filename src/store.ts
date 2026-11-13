@@ -16,7 +16,10 @@ type State = {
   covered: boolean // canvas is behind the opaque closing sections
   hover: [number, number] | null
   // low-frequency UI state: fine to select in components
-  ready: boolean
+  chunk: boolean // the 3D code has arrived
+  load: number // share of the 3D assets fetched, 0 to 1
+  ready: boolean // the scene has drawn real frames (or cannot: no WebGL)
+  revealed: boolean // the loader has lifted
   userPass: number
   layer: 0 | 1 // 0 backscatter, 1 interferogram
   pin: [number, number] | null // u, v on the scene, v = 0 at the south edge
@@ -26,7 +29,7 @@ type State = {
 
 export const useStore = create<State>(() => ({
   s: 0, pass: 0, pair: 0, covered: false, hover: null,
-  ready: false, userPass: LAST, layer: 0, pin: null, series: null, probeError: null,
+  chunk: false, load: 0, ready: false, revealed: false, userPass: LAST, layer: 0, pin: null, series: null, probeError: null,
 }))
 
 /** Interferogram that starts at this pass, or the nearest earlier one. */
