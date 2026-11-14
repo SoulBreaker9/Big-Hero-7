@@ -1,35 +1,64 @@
-# Saah (ਸਾਹ, "breath")
+# Saah (ਸਾਹ — “breath”)
 
-**Is Punjab's ground still breathing?** One year of real NISAR L-band radar over Punjab's fields, as a scroll-driven 3D story and an explorer.
+**Is Punjab's ground still breathing?**
 
-Live: https://saah-gamma.vercel.app
+Saah is an interactive 3D story and satellite-data explorer built by **Big Hero 7** for the **NASA Space Apps Challenge 2026**. It follows a year of NASA–ISRO NISAR radar over central Punjab to explore a question beneath its farmland: when groundwater returns, does the land recover too?
 
-Built by team Big Hero 7 for the 2026 NASA Space Apps Challenge, "Dancing with the SARs".
+**Deployed website:** [Explore Saah live](https://saah-gamma.vercel.app/)
 
-![Hero](docs/hero.jpg)
+**Problem statement:** [Dancing with the SARs — NASA Space Apps 2026](https://www.spaceappschallenge.org/2026/challenges/dancing-with-the-sars/)
+
+![Saah's interactive landscape](docs/hero.jpg)
+
+## The problem
+
+Punjab depends on groundwater to grow its crops, but extraction places heavy pressure on its aquifers. When pumping lowers groundwater pressure, the sediments beneath the fields can compress. Some movement reverses when water returns; other compaction can persist and reduce the space available to store water.
+
+These changes are difficult to understand from the surface alone. Saah brings radar observations, crop patterns and historic well records into one experience, helping students, agricultural advisers and water planners explore the evidence without needing a specialist radar tool.
+
+## What Saah does
+
+The experience begins with a guided story about groundwater and opens into an explorer. Real radar imagery sits on a 3D landscape, with illustrated underground layers explaining what may happen beneath the fields.
+
+- **Explore a year from orbit:** move through 24 NISAR radar passes from November 2025 to November 2026.
+- **Switch perspectives:** view radar brightness, interferograms that compare radar phase between dates, and an exploratory ground-motion layer.
+- **Inspect a location:** pin a place and chart its HH and HV radar-brightness signals over time.
+- **Connect the observations:** compare rice-like crop patterns from Sentinel-2 with radar changes and published groundwater records.
+- **Trace the data:** check acquisition dates, release levels and the source granule behind each image.
+
+The crop analysis finds a seasonal radar pattern consistent with flooded paddy. The motion analysis is exploratory: it uses browse previews and does not yet establish permanent subsidence. Historic wells provide context rather than validation of the current radar signal.
+
+## How it works
+
+Python scripts retrieve and process the satellite previews, build image atlases and save the analysis results. React and Three.js render the landscape and explorer in the browser, while Blender generates the aquifer and satellite illustrations. GSAP and Lenis support the guided scroll experience.
+
+The deployed application is a static site hosted on Vercel. Visitors can explore it without an account. The underground model is illustrative, not a measured reconstruction of Punjab's aquifer.
+
+## Run locally
 
 ```bash
 npm install
-npm run dev                      # http://localhost:5173, add ?stats for draw calls and fps
-npm run build                    # type-check + production build into dist/
-python3 scripts/build_data.py    # optional: rebuild the radar atlases from NASA's public quicklooks
-python3 scripts/build_motion.py  # optional: ground-motion layer. Also fetch_s2.py + build_paddy.py (rice test), build_sband.py, build_wells.py
-blender/build.sh --render        # optional: rebuild saah.blend, the web model and the stills (Blender 5.2+)
-                                 # on Windows: .\blender\build.ps1 --render
+npm run dev
 ```
 
-![NISAR over the block, rendered in Blender Cycles](docs/render-nisar.jpg)
+To check and build the application:
 
-- [HANDOFF.md](HANDOFF.md): why this idea, what is verified, what is not, and what to do next. Start here.
-- [PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md): how the code works and answers to likely questions.
-- [SUBMISSION.md](SUBMISSION.md): paste-ready answers for the Space Apps form, with what is and is not done.
-- [blender/saah.blend](blender/saah.blend): the 3D scene. NISAR is modelled from its published dimensions; the detail is illustrative.
-- [deck/Saah-SpaceApps-2026.pptx](deck/Saah-SpaceApps-2026.pptx): the 7-slide demo deck.
+```bash
+npm run lint
+npm run build
+```
 
-Data: NISAR L-band GCOV and GUNW browse products, NASA/ISRO, via the Alaska Satellite Facility DAAC. Not affiliated with or endorsed by NASA or ISRO. An AI assistant (Claude) helped write the code and text.
+The browser app uses the data already included in `src/data/`; rebuilding the scientific datasets is optional. See [PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md) for the architecture and processing commands.
 
-Other data: ESA Copernicus Sentinel-2 L2A (open, via Element84 Earth Search on AWS), Sharma, Sidana and Kumari 2024 (well levels, doi:10.63066/23220457.34.1.002), CGWB totals. Full list in SUBMISSION.md.
+## Data and documentation
+
+Saah uses NASA–ISRO NISAR L-band GCOV/GUNW browse products through ASF DAAC, ESA Sentinel-2 imagery, CGWB figures and published district well records. The analysis scripts are in `scripts/`, and source identifiers accompany the radar record.
+
+- [PROJECT_EXPLAINED.md](PROJECT_EXPLAINED.md) — how the application and data pipeline work.
+- [HANDOFF.md](HANDOFF.md) — project context, sources and development history.
+
+Saah is an independent hackathon project and is not affiliated with or endorsed by NASA or ISRO.
 
 ## Use of AI
 
-The project originated from team-driven ideation, with concepts further refined through AI-assisted exploration. Claude (Anthropic, via Claude Code) and ChatGPT (OpenAI, via Codex) served as execution companions, supporting research, analysis, coding, and design. AI augmented the team's capabilities but never replaced human reasoning, creativity, or decision-making; all core ideas, technical judgments, and final decisions remained team-driven. All figures are backed by cited public sources, with reproducible analysis scripts available in `scripts/`. No NASA logos or official branding are used.
+The project originated from team-driven ideation, with concepts further refined through AI-assisted exploration. Claude (Anthropic, via Claude Code) and ChatGPT (OpenAI, via Codex) served as execution companions, supporting research, analysis, coding, and design. AI augmented the team's capabilities but never replaced human reasoning, creativity, or decision-making; all core ideas, technical judgments, and final decisions remained team-driven. All figures are backed by cited public sources, with reproducible analysis scripts available in `scripts/`. 

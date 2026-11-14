@@ -33,3 +33,8 @@ blender/textures
 __pycache__/
 
 ppt_of_prev_winner_teams
+deck
+scripts/build_editable_pptx.py
+scripts/build_editorial_deck.py
+scripts/package_editorial_pptx.py
+SUBMISSION.md
