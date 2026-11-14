@@ -67,7 +67,7 @@ The project originated from team-driven ideation, with concepts further refined 
 
 | Team member | Role | Connect |
 | :--- | :--- | :---: |
-| 👑 **Parshva Shah** | ![Team Lead & Research](https://img.shields.io/badge/Team_Lead_%26_Research-713B9C?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/parshva-shah-0473b3319/) |
+| **Parshva Shah** | ![Team Lead & Research Lead](https://img.shields.io/badge/Team_Lead_%26_Research-713B9C?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/parshva-shah-0473b3319/) |
 | **Neal Daftary** | ![Remote Sensing & Data Analysis](https://img.shields.io/badge/Remote_Sensing_%26_Data_Analysis-248A82?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/neal-daftary-45743731a/) |
 | **Nandini Rathod** | ![Remote Sensing & Data Analysis](https://img.shields.io/badge/Remote_Sensing_%26_Data_Analysis-248A82?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/nandini-rathod-43b18a37a/) |
 | **Tirth Patel** | ![Web & 3D Development](https://img.shields.io/badge/Web_%26_3D_Development-3478B7?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/tirthpatel-ai/) |
