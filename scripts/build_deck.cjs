@@ -106,8 +106,8 @@ const picture = (s, name, x, y, w, h) => s.addImage({ path: img(name), x, y, w, 
 
 // 6. the test
 {
-  const s = slide('The breathing test: one question for every field', 'This is the method, not yet a result. NISAR GUNW products ship unwrapped phase with ionosphere and troposphere layers. A year of 12-day pairs gives a height record per pixel. Seasonal amplitude is elastic storage; the trend is inelastic, permanent loss. Dwarka in Delhi shows recovery is detectable: Garg et al. saw subsidence turn to uplift after rainwater harvesting.')
-  const steps = [['Stack', 'Turn the interferograms into a ground-height record for every 80 m of land.'], ['Clean', 'Remove atmosphere and ionosphere with the correction layers NISAR ships.'], ['Split', 'Seasonal rise and fall is sand breathing. A steady drop is clay lost for good.'], ['Explain', 'Line it up with when each field flooded and with CGWB well records.']]
+  const s = slide('Four tests of the breathing idea', 'Ground motion: we unwrapped the 21 browse interferograms and fitted a line plus a yearly cycle per pixel (noise about 13 mm, median trend -5.7 mm/yr). S-band: projected from L-band, not measured. Rice: Sentinel-2 crop calendar, ESA via AWS Open Data. Wells: Sharma, Sidana and Kumari 2024, J. Agricultural Development and Policy 34(1), doi 10.63066/23220457.34.1.002.')
+  const steps = [['Motion', 'A third layer on the 3D block: slope and yearly cycle per pixel. Noise is as big as the signal, so it is a first pass.'], ['S-band', 'Projected from our L-band data: S-band fringes are 2.5x tighter (47 mm vs 119 mm). Crop decorrelation needs real S-band data.'], ['Rice', 'HH rises +11 on rice-like fields vs +4 in HV; perennial crops fall. Consistent with flooded paddy, not proof.'], ['Wells', 'Sangrur water level fell 7.75 m to 34.03 m (1996-2018). One year of radar cannot test that yet.']]
   steps.forEach(([h, t], i) => {
     const x = 0.6 + i * 3.1
     s.addShape(pres.ShapeType.roundRect, { x, y: 1.95, w: 2.85, h: 2.5, fill: { color: C.background1 }, line: { color: C.accent6, width: 0.75 }, rectRadius: 0.08 })
@@ -116,7 +116,7 @@ const picture = (s, name, x, y, w, h) => s.addImage({ path: img(name), x, y, w, 
   })
   s.addText('What it delivers', { isTextBox: true, x: 0.6, y: 4.8, w: 5, h: 0.4, fontSize: 20, bold: true, color: C.text1, margin: 0 })
   body(s, [
-    { text: 'A block-by-block map of where Punjab’s aquifer can still be refilled, and where the room is already gone.', options: { bullet: true, breakLine: true } },
+    { text: 'A live 3D map of a year of NISAR over Punjab, with a ground-motion layer anyone can inspect.', options: { bullet: true, breakLine: true } },
     { text: 'For water boards: where recharge money still buys storage. For farmers and banks: where wells will keep going deeper.', options: { bullet: true, breakLine: true } },
     { text: 'The same method works on any pumped farmland NISAR covers: the North China Plain, California, Iran, the Indus basin.', options: { bullet: true } },
   ], { x: 0.6, y: 5.25, w: 12.1, h: 1.55, fontSize: 14 })
@@ -130,8 +130,8 @@ const picture = (s, name, x, y, w, h) => s.addImage({ path: img(name), x, y, w, 
     s.addText(head, { isTextBox: true, x: x + 0.3, y: 2.12, w: 5.3, h: 0.45, fontSize: 20, bold: true, color, margin: 0 })
     body(s, lines.map((t, i) => ({ text: t, options: { bullet: true, breakLine: i < lines.length - 1 } })), { x: x + 0.3, y: 2.7, w: 5.3, h: 2.7, fontSize: 14, paraSpaceAfter: 6 })
   }
-  col(0.6, 'Real today', ['24 NISAR L-band passes and 21 interferograms of Punjab, Nov 2025 to Nov 2026, each traceable to its NASA file.', 'The monsoon rise in HH, visible field by field.', 'Unbroken interferograms over cropland.', 'An open pipeline that rebuilds it all with no login.'], C.accent2)
-  col(6.85, 'Not yet', ['No sinking has been measured. That needs the full science files.', 'Quicklook brightness is not calibrated backscatter.', 'One year cannot separate a trend from a slow cycle; NISAR’s mission is three.', 'No S-band comparison yet (ISRO Bhoonidhi).'], C.accent1)
+  col(0.6, 'Real today', ['24 NISAR L-band passes and 21 interferograms of Punjab, Nov 2025 to Nov 2026, each traceable to its NASA file.', 'The monsoon rise in HH, visible field by field.', 'Unbroken interferograms over cropland.', 'Open scripts that rebuild the motion, rice and S-band numbers with no login.'], C.accent2)
+  col(6.85, 'Not yet', ['Sinking is not yet measured: our motion layer uses browse images, and its noise is about 13 mm. Full GUNW files need a login.', 'Quicklook brightness is not calibrated backscatter.', 'One year cannot separate a trend from a slow cycle; NISAR’s mission is three.', 'S-band is projected, not measured. Rice is a crop-calendar proxy. Wells are district figures to 2018.'], C.accent1)
   body(s, [
     { text: 'Sources: ', options: { bold: true } }, { text: 'NISAR GCOV and GUNW browse products, NASA/ISRO via ASF DAAC. CGWB, Dynamic Ground Water Resources of India 2023. Mishra et al. 2024, Earth’s Future. Hasan et al. 2023, Nature Communications. Garg et al. 2022, Scientific Reports. USGS Circular 1182.', options: { breakLine: true } },
     { text: 'AI use: ', options: { bold: true } }, { text: 'an AI assistant (Claude) helped write the code, text and this deck. Every figure is cited. Not affiliated with or endorsed by NASA or ISRO.' },

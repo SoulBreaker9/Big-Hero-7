@@ -21,7 +21,8 @@ type State = {
   ready: boolean // the scene has drawn real frames (or cannot: no WebGL)
   revealed: boolean // the loader has lifted
   userPass: number
-  layer: 0 | 1 // 0 backscatter, 1 interferogram
+  layer: 0 | 1 | 2 // 0 backscatter, 1 interferogram, 2 ground motion
+  kind: 0 | 1 // motion shown: 0 permanent trend, 1 seasonal amplitude
   pin: [number, number] | null // u, v on the scene, v = 0 at the south edge
   series: Series | null
   probeError: string | null
@@ -29,7 +30,7 @@ type State = {
 
 export const useStore = create<State>(() => ({
   s: 0, pass: 0, pair: 0, covered: false, hover: null,
-  chunk: false, load: 0, ready: false, revealed: false, userPass: LAST, layer: 0, pin: null, series: null, probeError: null,
+  chunk: false, load: 0, ready: false, revealed: false, userPass: LAST, layer: 0, kind: 0, pin: null, series: null, probeError: null,
 }))
 
 /** Interferogram that starts at this pass, or the nearest earlier one. */

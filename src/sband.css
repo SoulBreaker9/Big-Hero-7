@@ -1,0 +1,12 @@
+.sband .sband-tag { border-left: 3px solid var(--paddy); padding-left: 0.6rem; font-weight: 600; color: var(--ink); }
+.sband-stats { margin: 1rem 0; display: grid; gap: 0.5rem; }
+.sband-stats div { background: var(--paper); border: 1px solid var(--rule); padding: 0.5rem 0.75rem; }
+.sband-stats dt { font-size: 0.8125rem; color: var(--soft); }
+.sband-stats dd { margin: 0.1rem 0 0; font-weight: 650; }
+.sband-stats b { color: var(--paddy); font-weight: 700; }
+.sband-wrap { margin: 1rem 0; background: var(--paper); border: 1px solid var(--rule); overflow-x: auto; }
+.sband-wrap table { white-space: normal; width: 100%; font-size: 0.8125rem; line-height: 1.4; }
+.sband-wrap th, .sband-wrap td { vertical-align: top; }
+.sband-wrap tbody th { position: static; background: none; white-space: nowrap; }
+.sband-wrap .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+@media (max-width: 40rem) { .sband-wrap table { min-width: 34rem; } }

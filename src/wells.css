@@ -1,0 +1,11 @@
+.wells { overflow-x: auto; }
+.wells table { width: 100%; white-space: normal; margin-bottom: 0.5rem; }
+.wells caption { text-align: left; font-size: 0.8125rem; color: var(--soft); padding-bottom: 0.4rem; }
+.wells th, .wells td { padding: 0.3rem 0.4rem; border-bottom: 1px solid var(--rule); text-align: right; font-weight: 400; }
+.wells thead th { font-weight: 600; vertical-align: bottom; }
+.wells th:first-child { text-align: left; font-weight: 600; }
+.wells small { color: var(--soft); font-size: 0.75rem; }
+.wells h3 { font-size: 1.125rem; margin: 1.25rem 0 0.5rem; }
+.wells li { margin-bottom: 0.5rem; }
+.wells .cites { padding-left: 1.2rem; }
+.wells .cites a { word-break: break-all; }

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
 import backUrl from '../data/backscatter.webp'
 import phaseUrl from '../data/phase.webp'
+import motionUrl from '../data/motion.webp'
 import modelUrl from '../data/saah.glb?url'
 import strataUrl from '../data/strata.webp'
 import { LAST, N, pairs, pick, useStore } from '../store'
@@ -92,11 +93,20 @@ const slabVert = /* glsl */ `
 varying vec3 vP; varying vec3 vN;
 void main() { vP = position; vN = normal; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`
 const slabFrag = /* glsl */ `
-uniform sampler2D uBack, uPhase;
-uniform float uPass, uPair, uLayer, uScan;
+uniform sampler2D uBack, uPhase, uMotion;
+uniform float uPass, uPair, uLayer, uKind, uScan;
 uniform vec2 uPin, uHover;
 varying vec3 vP; varying vec3 vN;
 ${lit}${strata}
+// the third layer: R permanent trend (mm/yr, +-60), G seasonal amplitude (0 to 30 mm), B how well the pairs agree
+vec3 motion(vec2 uv) {
+  vec3 m = texture2D(uMotion, clamp(uv, 0.002, 0.998)).rgb;
+  vec3 mid = vec3(0.93, 0.9, 0.94), down = vec3(0.71, 0.08, 0.55), up = vec3(0.17, 0.44, 0.77);
+  float t = m.r * 2.0 - 1.0; // sinking is magenta, rising is blue
+  vec3 trend = mix(mid, t < 0.0 ? down : up, pow(abs(t), 0.7));
+  vec3 season = mix(vec3(0.95, 0.93, 0.9), vec3(0.1, 0.55, 0.45), smoothstep(0.0, 0.8, m.g)); // flat is pale, strong breathing is green
+  return mix(vec3(0.5), mix(trend, season, uKind), 0.35 + 0.65 * smoothstep(0.3, 0.9, m.b)); // greyed where the radar lost track
+}
 vec3 tile(sampler2D t, float i, vec2 uv) {
   uv = clamp(uv, 0.002, 0.998); // stay off the neighbouring tile
   return texture2D(t, vec2((mod(i, 5.0) + uv.x) / 5.0, (4.0 - floor(i / 5.0) + uv.y) / 5.0)).rgb;
@@ -108,7 +118,7 @@ void main() {
   float a = floor(uPass), b = floor(uPair);
   vec3 back = mix(tile(uBack, a, uv), tile(uBack, min(a + 1.0, ${LAST}.0), uv), fract(uPass));
   vec3 phase = mix(tile(uPhase, b, uv), tile(uPhase, min(b + 1.0, ${pairs.length - 1}.0), uv), fract(uPair));
-  vec3 col = mix(back, phase, uLayer);
+  vec3 col = uLayer > 1.0 ? mix(phase, motion(uv), uLayer - 1.0) : mix(back, phase, uLayer);
   float d = uv.y - uScan; // the radar's footprint passing over, with the strip it has just imaged still glowing
   col += smoothstep(0.012, 0.0, abs(d)) * 0.5 + vec3(0.71, 0.08, 0.55) * 0.22 * smoothstep(0.14, 0.0, -d) * step(d, 0.0);
   col = mix(col, vec3(1.0), smoothstep(0.004, 0.0, abs(distance(uv, uPin) - 0.02)));
@@ -172,7 +182,7 @@ function mulberry(seed: number) {
 }
 
 function World() {
-  const [back, phase, strataTex] = useLoader(THREE.TextureLoader, [backUrl, phaseUrl, strataUrl])
+  const [back, phase, motion, strataTex] = useLoader(THREE.TextureLoader, [backUrl, phaseUrl, motionUrl, strataUrl])
   const { nodes } = useGLTF(modelUrl, false, false) as unknown as { nodes: Record<'NISAR' | 'Bedrock' | 'ClayLens', THREE.Mesh> }
   const { camera, invalidate, size, gl } = useThree()
   const regress = useThree((s) => s.performance.regress)
@@ -184,7 +194,7 @@ function World() {
 
   // geometries and materials are built once and shared
   const g = useMemo(() => {
-    for (const t of [back, phase]) { t.generateMipmaps = false; t.minFilter = THREE.LinearFilter } // an atlas would bleed across tiles in its mips
+    for (const t of [back, phase, motion]) { t.generateMipmaps = false; t.minFilter = THREE.LinearFilter } // an atlas would bleed across tiles in its mips
     strataTex.wrapS = THREE.RepeatWrapping
     const shader = (vertexShader: string, fragmentShader: string, uniforms: Record<string, unknown>, rest: THREE.ShaderMaterialParameters = {}) =>
       new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms: Object.fromEntries(Object.entries(uniforms).map(([k, value]) => [k, { value }])), ...rest })
@@ -206,7 +216,7 @@ function World() {
     return {
       wells, clay,
       slabGeo: new THREE.BoxGeometry(SIZE, CRUST, SIZE).translate(0, -CRUST / 2, 0),
-      slabMat: shader(slabVert, slabFrag, { uBack: back, uPhase: phase, uStrata: strataTex, uPass: 0, uPair: 0, uLayer: 0, uScan: -1, uPin: new THREE.Vector2(-9, -9), uHover: new THREE.Vector2(-9, -9) }),
+      slabMat: shader(slabVert, slabFrag, { uBack: back, uPhase: phase, uMotion: motion, uStrata: strataTex, uPass: 0, uPair: 0, uLayer: 0, uKind: 0, uScan: -1, uPin: new THREE.Vector2(-9, -9), uHover: new THREE.Vector2(-9, -9) }),
       wallGeo: new THREE.BoxGeometry(SIZE, DEPTH, SIZE).translate(0, -DEPTH / 2, 0),
       wallMat: shader(slabVert, wallFrag, { uStrata: strataTex, uWater: 0, uTop: 0 }, { side: THREE.BackSide }),
       // the fixed outline is the ground level before pumping, so the sinking slab leaves a visible gap under it
@@ -217,7 +227,7 @@ function World() {
       beamMat: shader(beamVert, beamFrag, { uA: rgb(PADDY), uT: 0, uOn: 1 }, { transparent: true, side: THREE.DoubleSide, depthWrite: false }),
       shadowMat: shader(slabVert, shadowFrag, { uA: rgb(INK), uOn: 1 }, { transparent: true, depthWrite: false }),
     }
-  }, [back, phase, strataTex, nodes])
+  }, [back, phase, motion, strataTex, nodes])
 
   // objects made by hand are not owned by the reconciler, so release them ourselves (the lens geometry belongs to the glTF cache)
   useEffect(() => () => { g.wells.geometry.dispose(); g.frame.geometry.dispose(); for (const o of [g.wells, g.clay, g.frame]) (o.material as THREE.Material).dispose() }, [g])
@@ -301,6 +311,7 @@ function World() {
     su.uPass.value = c.pass
     su.uPair.value = c.pair
     su.uLayer.value = layer
+    su.uKind.value = st.kind
     su.uScan.value = reducedMotion || exploring ? -1 : 0.5 - z / SIZE
     su.uPin.value.set(...(st.pin ?? [-9, -9]))
     su.uHover.value.set(...(st.hover ?? [-9, -9]))

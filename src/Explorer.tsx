@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import Chart from './Chart'
+import motion from './data/motion.json'
 import { fmtDate, LAST, lonLat, N, pairOf, pairs, passes, pick, toUV, useStore } from './store'
 
 const places: [string, number, number][] = [
@@ -15,6 +16,7 @@ const where = ([u, v]: [number, number]) => { const [lon, lat] = lonLat(u, v); r
 export default function Explorer() {
   const userPass = useStore((s) => s.userPass)
   const layer = useStore((s) => s.layer)
+  const kind = useStore((s) => s.kind)
   const pin = useStore((s) => s.pin)
   const series = useStore((s) => s.series)
   const probeError = useStore((s) => s.probeError)
@@ -32,14 +34,25 @@ export default function Explorer() {
       <div className="seg" role="group" aria-label="What to show">
         <button aria-pressed={layer === 0} onClick={() => useStore.setState({ layer: 0 })}>Backscatter</button>
         <button aria-pressed={layer === 1} onClick={() => useStore.setState({ layer: 1 })}>Interferogram</button>
+        <button aria-pressed={layer === 2} onClick={() => useStore.setState({ layer: 2 })}>Ground motion</button>
       </div>
+      {layer === 2 && (
+        <div className="seg" role="group" aria-label="Which motion">
+          <button aria-pressed={kind === 0} onClick={() => useStore.setState({ kind: 0 })}>Sinking for good</button>
+          <button aria-pressed={kind === 1} onClick={() => useStore.setState({ kind: 1 })}>Breathing</button>
+        </div>
+      )}
 
-      <label className="slider">
+      {layer < 2 && <label className="slider">
         <span>{layer ? `${fmtDate(pair.ref)} to ${fmtDate(pair.sec)}` : fmtDate(passes[userPass].date)}</span>
         <input type="range" min={0} max={LAST} step={1} value={userPass} onChange={(e) => show(+e.target.value)} aria-valuetext={fmtDate(passes[userPass].date)} />
-      </label>
+      </label>}
       <p className="note">
-        {layer
+        {layer === 2
+          ? kind
+            ? `Green is ground that rises and falls each year, up to ${motion.ampP95} mm. A yearly cycle like this is what the sand layers taking up and giving back water would produce, but atmosphere also has a seasonal pattern, so treat it as a lead, not a finding.`
+            : `Magenta is ground that sank over the year, blue is ground that rose. It is the straight-line slope fitted to ${motion.pairs} browse interferograms. A steady slope is what permanent loss would look like, but the noise is about ${motion.noiseMm} mm, so the broad blobs are mostly atmosphere. Median ${motion.trendMedian} mm per year.`
+          : layer
           ? 'One full colour cycle is about 12 cm of change along the radar’s line of sight. Most of it here is atmosphere and orbit, not ground motion.'
           : 'Magenta means the HH echo is stronger than HV; green means volume scattering from tree canopy; white is buildings.'}
       </p>

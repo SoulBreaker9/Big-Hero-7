@@ -1,0 +1,111 @@
+{
+ "radiusKm": 15,
+ "years": "1996 to 2018",
+ "roi": [
+  75.2,
+  29.95,
+  76.6,
+  31.15
+ ],
+ "districts": {
+  "Sangrur": {
+   "lon": 75.84,
+   "lat": 30.25,
+   "waterM": {
+    "1996": 7.75,
+    "2018": 34.03
+   },
+   "fallM": 26.28,
+   "fallMPerYr": 1.19,
+   "riceShare": {
+    "1996": 70.59,
+    "2018": 90.15
+   },
+   "radar": {
+    "cells": 648,
+    "trendMmYr": 19.3,
+    "trendIqr": [
+     -22.4,
+     57.3
+    ],
+    "seasonalMm": 9.4,
+    "seasonalIqr": [
+     5.8,
+     14.5
+    ]
+   }
+  },
+  "Barnala": {
+   "lon": 75.55,
+   "lat": 30.38,
+   "waterM": {
+    "1996": 10.87,
+    "2018": 34.19
+   },
+   "fallM": 23.32,
+   "fallMPerYr": 1.06,
+   "riceShare": {
+    "1996": 73.23,
+    "2018": 91.12
+   },
+   "radar": {
+    "cells": 648,
+    "trendMmYr": 35.5,
+    "trendIqr": [
+     6.4,
+     60.0
+    ],
+    "seasonalMm": 13.3,
+    "seasonalIqr": [
+     9.9,
+     16.8
+    ]
+   }
+  },
+  "Patiala": {
+   "lon": 76.39,
+   "lat": 30.34,
+   "waterM": {
+    "1996": 10.24,
+    "2018": 30.28
+   },
+   "fallM": 20.04,
+   "fallMPerYr": 0.91,
+   "riceShare": {
+    "1996": 73.34,
+    "2018": 90.66
+   },
+   "radar": {
+    "cells": 648,
+    "trendMmYr": 9.2,
+    "trendIqr": [
+     -19.1,
+     38.0
+    ],
+    "seasonalMm": 15.4,
+    "seasonalIqr": [
+     10.9,
+     19.6
+    ]
+   }
+  }
+ },
+ "scaleGap": {
+  "sk": [
+   0.0001,
+   0.01
+  ],
+  "note": "illustrative range, not measured for these districts",
+  "meanFallMPerYr": 1.05,
+  "impliedMmPerYr": [
+   0.11,
+   10.53
+  ]
+ },
+ "scene": {
+  "trendMedian": -5.72,
+  "ampMedian": 14.1,
+  "noiseMm": 12.85,
+  "pairs": 21
+ }
+}

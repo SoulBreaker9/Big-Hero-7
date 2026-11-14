@@ -5,6 +5,9 @@ import Chart from './Chart'
 import Explorer from './Explorer'
 import Hud from './Hud'
 import Loader from './Loader'
+import Paddy from './Paddy'
+import SBand from './SBand'
+import Wells from './Wells'
 import { gsap, ScrollTrigger, startScroll, WIDE } from './motion'
 import Waves from './Waves'
 import { LAST, pairOf, pairs, passes, useStore } from './store'
@@ -135,6 +138,7 @@ export default function App() {
             <Read>{year}</Read>
             <p>Our reading: rice stems standing in flooded fields bounce the wave off the water and straight back, which brightens HH and not HV. It fades with the October harvest. Those are the months the tubewells run hardest.</p>
             <Chart hh={meanHH} hv={meanHV} title="Average brightness of the whole scene, 0 to 255" />
+            <Paddy />
           </div></div>
         </section>
 
@@ -155,15 +159,25 @@ export default function App() {
           <Explorer />
         </section>
 
+        <section data-scene data-side="right">
+          <div className="panel"><div className="panel-body">
+            <SBand />
+          </div></div>
+        </section>
+
+        <Wells />
+
         <div className="ground">
           <section>
             <h2>What this does not show yet</h2>
             <ul>
-              <li><b>No sinking has been measured here.</b> The breathing test above is our method, not a result. It needs the full NISAR science files, which need a free NASA Earthdata login.</li>
+              <li><b>The ground-motion layer is a first pass, not a survey.</b> We unwrapped the 21 browse interferograms and fitted a straight line plus a yearly cycle to each pixel, but the browse images are colour pictures of phase, not the full GUNW files with their ionosphere and troposphere layers. The noise (about 13 mm) is as large as the signal, so most of that map is atmosphere. The full files need a free NASA Earthdata login.</li>
               <li><b>These are quicklook images.</b> Brightness is a display value from 0 to 255, not calibrated backscatter, and NASA may stretch each image differently. The monsoon rise must be confirmed on the calibrated files.</li>
               <li><b>One year cannot separate a trend from a slow cycle.</b> Two to three years are needed. NISAR’s planned mission is three.</li>
               <li><b>One viewing direction.</b> Vertical and sideways motion cannot be told apart without the descending track, which also covers this area.</li>
-              <li><b>No S-band comparison.</b> NISAR’s second radar is processed by ISRO and published separately on Bhoonidhi.</li>
+              <li><b>No S-band data.</b> NISAR’s second radar is published separately on Bhoonidhi. The S-band section projects our L-band motion to the shorter wavelength; it does not measure S-band.</li>
+              <li><b>The rice test is a proxy.</b> Rice is picked from the Sentinel-2 crop calendar, not an official paddy map, and it cannot tell rice from maize. It is consistent with the idea, not proof.</li>
+              <li><b>No well time series.</b> The Board’s portal was down, so the wells are district figures from a published paper, 1996 to 2018.</li>
               <li><b>Two passes are left out</b> (7 July, cut off at the swath edge; 5 September, smeared), and NISAR recorded nothing from 27 July to 10 August 2026.</li>
             </ul>
           </section>
@@ -172,9 +186,11 @@ export default function App() {
             <ul className="sources">
               <li>NISAR L-band GCOV and GUNW browse products, track 156 frame 17, 21 Nov 2025 to 4 Nov 2026. NASA/ISRO, distributed by the <a href="https://search.asf.alaska.edu/#/?dataset=NISAR">Alaska Satellite Facility DAAC</a>.</li>
               <li>Central Ground Water Board, <cite>Dynamic Ground Water Resources of India, 2023</cite>. <a href="https://cgwb.gov.in">cgwb.gov.in</a></li>
-              <li>Mishra et al. 2024, <cite>Earth’s Future</cite>. Groundwater loss in north India, 2002 to 2021. <a href="https://doi.org/10.1029/2024EF004516">doi:10.1029/2024EF004516</a></li>
+              <li>Mishra et al. 2024, <cite>Earth’s Future</cite>. Summer monsoon drying accelerates India’s groundwater depletion under climate change. <a href="https://doi.org/10.1029/2024EF004516">doi:10.1029/2024EF004516</a></li>
               <li>Hasan et al. 2023, <cite>Nature Communications</cite> 14:6180. Global subsidence and permanent aquifer storage loss. <a href="https://doi.org/10.1038/s41467-023-41933-z">doi:10.1038/s41467-023-41933-z</a></li>
               <li>Garg et al. 2022, <cite>Scientific Reports</cite> 12:651. Subsidence and recovery in Delhi. <a href="https://doi.org/10.1038/s41598-021-04193-9">doi:10.1038/s41598-021-04193-9</a></li>
+              <li>ESA Copernicus Sentinel-2 L2A surface reflectance (crop calendar for the rice test), via <a href="https://registry.opendata.aws/sentinel-2-l2a-cogs/">AWS Open Data</a> and the <a href="https://earth-search.aws.element84.com/v1">Earth Search STAC API</a>.</li>
+              <li>Sharma, Sidana and Kumari 2024, <cite>Journal of Agricultural Development and Policy</cite> 34(1):12-21. District water levels in Punjab, 1996 to 2018. <a href="https://doi.org/10.63066/23220457.34.1.002">doi:10.63066/23220457.34.1.002</a></li>
               <li>Galloway, Jones and Ingebritsen 1999, <cite>Land Subsidence in the United States</cite>, USGS Circular 1182. Elastic and inelastic compaction.</li>
             </ul>
             <p className="note">Built by team Big Hero 7 for the 2026 NASA Space Apps Challenge, “Dancing with the SARs”. Code and data pipeline are open on <a href="https://github.com/SoulBreaker9/Big-Hero-7">GitHub</a>. An AI assistant (Claude) helped write the code and edit the text; every figure is cited above. Not affiliated with or endorsed by NASA or ISRO.</p>

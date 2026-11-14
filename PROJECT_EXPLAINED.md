@@ -114,6 +114,12 @@ State lives in one Zustand store (`src/store.ts`). Per-frame fields (`s`, `pass`
 | `blender/build.py` | Builds the Blender file, the web model and the Cycles stills. `blender/build.sh` (Linux, macOS) and `blender/build.ps1` (Windows) find Blender and run it |
 | `blender/saah.blend` | The scene, textures packed. Open it in Blender 5.2 or later |
 | `scripts/build_data.py` | Downloads NASA quicklooks and builds `src/data/` |
+| `scripts/build_motion.py` | Reads phase back from the 21 interferogram quicklooks, unwraps, fits trend + seasonal sine per pixel. Writes `motion.webp` and `motion.json`. `--selftest` recovers a planted signal |
+| `scripts/fetch_s2.py`, `scripts/build_paddy.py` | Fetch Sentinel-2 (ESA, open) onto the radar grid; classify rice-like fields and test HH and HV on them. Write `paddy.json` and `paddy.webp` |
+| `scripts/build_sband.py` | Rescales the 21 L-band pairs to S-band phase and counts steps that would alias. Writes `sband.json` |
+| `scripts/build_wells.py` | Joins published district well levels with the radar numbers. Writes `wells.json` |
+| `src/Paddy.tsx`, `src/SBand.tsx`, `src/Wells.tsx` | The three sections that show those results |
+| `SUBMISSION.md` | Paste-ready answers for the Space Apps form |
 | `scripts/build_deck.cjs` | Generates the 7-slide deck |
 | `vercel.json` | Immutable cache header for hashed assets |
 | `HANDOFF.md` | Reasoning, sources, next steps |
@@ -134,7 +140,8 @@ No environment variables or secrets. Tests: the TypeScript build is the type che
 
 ## 8. Limits and next steps
 
-- No ground motion is measured. See `HANDOFF.md` section 8 for the plan.
+- Ground motion is a first pass: it comes from colour browse images, not the GUNW HDF5 files, so there is no troposphere or ionosphere correction layer, noise (about 12.9 mm) is as large as the signal, and the sign of the trend is not claimed. See section 11.
+- S-band is projected from L-band, not measured. The rice test uses a Sentinel-2 proxy, not an official paddy map. The well data are published district figures for 1996 to 2018, not the Board's station series.
 - Brightness values are display numbers, not calibrated backscatter.
 - 3 MB of textures load up front. At 10× the passes this approach fails; switch to tiled or per-date loading and GPU-compressed textures.
 - Frame rate on real hardware is unmeasured; all checks ran in a headless browser with a software renderer.
@@ -192,3 +199,39 @@ No environment variables or secrets. Tests: the TypeScript build is the type che
 - **Instancing**: drawing many copies of one shape in a single draw call.
 - **dpr**: device pixel ratio; how many screen pixels per CSS pixel are rendered.
 - **LCP / CLS / TBT**: largest contentful paint, cumulative layout shift, total blocking time; page-speed measures.
+
+## 11. The four additions (14 Nov 2026)
+
+### Simple version
+
+Think of the ground as a mattress under a sleeper. When the sleeper (water) leaves a spring-filled mattress, it rises a little and sinks again when they return: that is breathing. If the springs get crushed, the dent stays: that is permanent loss. The radar takes a "photo" every 12 days that can show tiny height changes. We did four things with it. (1) For every spot we separated the dent that stays from the breathing that comes back. (2) We asked what a second radar with a shorter wavelength would see. (3) We checked whether the brightness jump we saw in July is really flooded rice fields. (4) We put the well-water numbers beside the radar to see if they tell the same story. Each result is shown with what it cannot prove.
+
+### Technical version
+
+| Addition | Method | Result | Limit |
+|---|---|---|---|
+| Motion layer | `build_motion.py`: colour to wrapped phase (nearest point on matplotlib's cyclic `twilight` curve), 4 x 4 complex multilook (coherence = abs of mean), Herraez 2-D unwrap (scikit-image), best-fit plane removed, reference to median of coherent pixels, then per-pixel weighted least squares of d(t) = v t + a sin(wt) + b cos(wt) fitted directly to the 21 pair differences d(t2) - d(t1), so gaps in the pair chain add no bias. v is permanent trend, sqrt(a2 + b2) is reversible amplitude. Packed as R trend, G amplitude, B quality in a 128 x 128 lossless webp | Median trend -5.7 mm/yr, median seasonal swing 14.1 mm (p95 29.9), residual rms 12.9 mm, coherence 0.97 | Browse images, no GACOS or ionosphere layer, sign of trend unclaimed, one year |
+| Third atlas | `Scene.tsx` already blended backscatter and phase atlases. We added `uMotion` sampler, `uKind` uniform (trend or breathing) and a `motion()` shader function; `layer = 2` selects it; pixels with low quality fade to grey | Third button in Explorer, plus a trend/breathing switch | None beyond the data |
+| S-band | `build_sband.py`: phase = 4 pi d / lambda, so S (94 mm) gives 2.53 times more phase than L (238 mm). Multiply the 21 unwrapped L pairs by 2.53 and count neighbour steps over pi | 681,755 steps, none alias at L or S; the largest S step is 3.1 times under the pi limit; 7.5 mm per radian against 18.9 | Projected, not measured. Decorrelation over crops (the real band difference) needs S-band data |
+| Rice test | `fetch_s2.py` pulls Sentinel-2 L2A COG overviews in parallel onto the 260 m radar grid, masks cloud with SCL; `build_paddy.py` labels cells by crop calendar (bare in June, green 18 Sep, cleared by 25 Oct = rice-like), keeps cells whose 3 x 3 window is one class, removes the scene-wide gradient, compares June-to-September change in HH and HV | 29,165 rice-like cells: HH +11.1, HV +3.7; perennial HH -14.0, HV -5.8; after harvest HH -8.8; top-quartile HH risers are 78% rice-like vs 65.6% base; HH rise vs greening r = 0.27, doseR 0.04 | A proxy: cannot split rice from maize or cotton. Consistent with, not proof |
+| Wells | `build_wells.py`: Sharma, Sidana and Kumari 2024 Table 4 (October depth to water, 1996 and 2018) beside the radar trend and swing within 15 km of each district centre | Falls 26.3 m (Sangrur), 23.3 (Barnala), 20.0 (Patiala), about 1.2, 1.1, 0.9 m/yr; radar district trends +9 to +36 mm/yr straddle zero; swing 9.4 to 15.4 mm vs scene median 14.1 | Not a test. District figures end in 2018; the CGWB WIMS portal was in maintenance mode. Radar trends are read as residual atmosphere |
+
+Stack choices for these: scikit-image over writing our own unwrapper (well tested, one call); a quicklook inversion because the GUNW HDF5 files need an Earthdata login and many GB we did not have time for (rejected alternative: MintPy proper, which needs those files and its own setup); Sentinel-2 over a paddy map because it is open, global and reachable without registration (rejected: a state paddy map, none was reachable); COG overviews because full-resolution reads ran at about 60 KB/s and one overview band is enough for a 260 m grid.
+
+How to run: `python3 scripts/build_motion.py --selftest`, then each build script; each writes its JSON into `src/data/`.
+
+### Likely developer questions
+
+**Is this really MintPy?** No. It follows MintPy's steps (unwrap, de-ramp, reference, time-series fit) on browse images and fits the parameters directly on pair differences. The real GUNW files plus troposphere and ionosphere layers are the planned upgrade, and the site says so.
+
+**Why trust the phase read back from colours?** The quicklooks use matplotlib's `twilight` map, which is cyclic and one-to-one with phase, and the self-test plants a signal (v 18.7, a 6.2, b -4.0) and recovers it with a 0.03 rad colour round-trip error. Quantisation to 8 bits is a noise floor. We do not claim the sign of the trend because the colour-to-sign convention is undocumented.
+
+**Your district trends are positive over a falling aquifer. Isn't that wrong?** Yes, physically, and we say so. Their ranges cross zero and the scene median is -5.7 mm/yr, so we read them as leftover atmosphere or orbit error, not uplift.
+
+**Does the rice test prove HH brightens on paddy?** No. Rice-like cells show a 3 times larger HH than HV rise, perennial vegetation falls, and HH drops after harvest, which is the flooded-paddy pattern. But the label is a crop-calendar guess, the controls are small (2,240 perennial and 152 barren cells), and the per-cell link between greening and HH is weak (r = 0.27). It needs an official paddy map.
+
+**Is the S-band comparison real data?** No. It is a projection of real L-band pairs through the phase equation. It shows Punjab's slow motion would unwrap at S-band, and it does not measure decorrelation over crops, which is what actually separates the bands.
+
+**Why not use well data for 2025 to 2026?** The CGWB portal was in maintenance mode when we tried. The wells are published district figures for 1996 to 2018, so the comparison shows direction and size of storage loss but cannot test the radar.
+
+**What did AI do?** Claude (via Claude Code) helped with ideation, research, analysis code, site code, text and the deck. This is disclosed in the site footer and in `SUBMISSION.md`.
