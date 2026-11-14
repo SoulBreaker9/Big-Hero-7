@@ -61,4 +61,15 @@ Saah is an independent hackathon project and is not affiliated with or endorsed 
 
 ## Use of AI
 
-The project originated from team-driven ideation, with concepts further refined through AI-assisted exploration. Claude (Anthropic, via Claude Code) and ChatGPT (OpenAI, via Codex) served as execution companions, supporting research, analysis, coding, and design. AI augmented the team's capabilities but never replaced human reasoning, creativity, or decision-making; all core ideas, technical judgments, and final decisions remained team-driven. All figures are backed by cited public sources, with reproducible analysis scripts available in `scripts/`. 
+The project originated from team-driven ideation, with concepts further refined through AI-assisted exploration. Claude (Anthropic, via Claude Code) and ChatGPT (OpenAI, via Codex) served as execution companions, supporting research, analysis, coding, and design. AI augmented the team's capabilities but never replaced human reasoning, creativity, or decision-making; all core ideas, technical judgments, and final decisions remained team-driven. All figures are backed by cited public sources, with reproducible analysis scripts available in `scripts/`.
+
+## Team — Big Hero 7
+
+| Team member | Role | Connect |
+| :--- | :--- | :---: |
+| 👑 **Parshva Shah** | ![Team Lead & Research](https://img.shields.io/badge/Team_Lead_%26_Research-713B9C?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/parshva-shah-0473b3319/) |
+| **Neal Daftary** | ![Remote Sensing & Data Analysis](https://img.shields.io/badge/Remote_Sensing_%26_Data_Analysis-248A82?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/neal-daftary-45743731a/) |
+| **Nandini Rathod** | ![Remote Sensing & Data Analysis](https://img.shields.io/badge/Remote_Sensing_%26_Data_Analysis-248A82?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/nandini-rathod-43b18a37a/) |
+| **Tirth Patel** | ![Web & 3D Development](https://img.shields.io/badge/Web_%26_3D_Development-3478B7?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/tirthpatel-ai/) |
+| **Priyanshu Doshi** | ![Web & 3D Development](https://img.shields.io/badge/Web_%26_3D_Development-3478B7?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/iampriyanshudoshi/) |
+| **Srishti Asrani** | ![Design & Storytelling](https://img.shields.io/badge/Design_%26_Storytelling-D94D91?style=flat-square) | [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin&logoColor=white&style=flat-square)](https://www.linkedin.com/in/srishti-asrani-75aab1375/) |
