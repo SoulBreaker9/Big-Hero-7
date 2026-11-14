@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 const W = 520, CROP = 300, SOIL = 500
 /** A sine of the given wavelength (px) from x0 to x1, its height fading by `fade` over the run. */
 const wave = (y: number, len: number, x0: number, x1: number, fade = 0) => {
@@ -9,7 +10,7 @@ const wave = (y: number, len: number, x0: number, x1: number, fade = 0) => {
 /** Why the fields were invisible: the two wavelengths drawn to the same scale, meeting a crop. */
 export default function Waves() {
   return (
-    <figure className="waves">
+    <figure className="waves fx" style={{ '--d': 3 } as CSSProperties}>
       <svg viewBox={`0 0 ${W + 24} 170`} role="img" aria-label="A 5.6 centimetre radar wave is scattered inside a crop canopy. A 24 centimetre wave, drawn to the same scale, passes through to the soil.">
         {Array.from({ length: 34 }, (_, i) => <path key={i} className="stalk" d={`M${CROP + 6 + i * 5.6} 14v142`} />)}
         <path className="soil" d={`M${SOIL} 8v154`} />
@@ -21,7 +22,6 @@ export default function Waves() {
         <text x={CROP + 8} y="166" className="label">crop</text>
         <text x={SOIL + 6} y="166" className="label">soil</text>
       </svg>
-      <figcaption className="note">The two wavelengths to the same scale. The short one is scrambled by the crop; the long one reaches the ground and comes back.</figcaption>
     </figure>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import Chart from './Chart'
 import motion from './data/motion.json'
 import { fmtDate, LAST, lonLat, N, pairOf, pairs, passes, pick, toUV, useStore } from './store'
@@ -27,9 +27,9 @@ export default function Explorer() {
   useEffect(() => useStore.subscribe((s) => { if (hover.current) hover.current.textContent = s.hover ? 'Cursor at ' + where(s.hover) : 'Click the scene, or pick a place, to plot it through the year.' }), [])
 
   return (
-    <div className="panel explorer"><div className="panel-body">
-      <h2>Look for yourself</h2>
-      <p>Every image here is a real NISAR pass over the same 134 km of Punjab. Drag through the year, switch what the radar measured, and pin any spot.</p>
+    <div className="explorer">
+      <p className="eyebrow" style={{ '--n': '"09"' } as CSSProperties}>Look for yourself</p>
+      <h2>Every pixel is a real NISAR pass. Pin any field.</h2>
 
       <div className="seg" role="group" aria-label="What to show">
         <button aria-pressed={layer === 0} onClick={() => useStore.setState({ layer: 0 })}>Backscatter</button>
@@ -50,11 +50,11 @@ export default function Explorer() {
       <p className="note">
         {layer === 2
           ? kind
-            ? `Green is ground that rises and falls each year, up to ${motion.ampP95} mm. A yearly cycle like this is what the sand layers taking up and giving back water would produce, but atmosphere also has a seasonal pattern, so treat it as a lead, not a finding.`
-            : `Magenta is ground that sank over the year, blue is ground that rose. It is the straight-line slope fitted to ${motion.pairs} browse interferograms. A steady slope is what permanent loss would look like, but the noise is about ${motion.noiseMm} mm, so the broad blobs are mostly atmosphere. Median ${motion.trendMedian} mm per year.`
+            ? `Green rises and falls each year, up to ${motion.ampP95} mm. A lead, not a finding: atmosphere is seasonal too.`
+            : `Magenta sank, blue rose. Slope over ${motion.pairs} browse pairs; noise is about ${motion.noiseMm} mm, so broad blobs are mostly atmosphere.`
           : layer
-          ? 'One full colour cycle is about 12 cm of change along the radar’s line of sight. Most of it here is atmosphere and orbit, not ground motion.'
-          : 'Magenta means the HH echo is stronger than HV; green means volume scattering from tree canopy; white is buildings.'}
+          ? 'One colour cycle ≈ 12 cm along the radar’s line of sight. Mostly atmosphere and orbit.'
+          : 'Magenta: strong HH echo. Green: tree canopy. White: buildings.'}
       </p>
 
       <div className="places">
@@ -65,7 +65,7 @@ export default function Explorer() {
       {pin && series && <Chart hh={series.hh} hv={series.hv} title={`Brightness at ${where(pin)}`} />}
 
       <details>
-        <summary>All {N} passes and their source files</summary>
+        <summary>All {N} passes and source granules</summary>
         <div className="ledger" data-lenis-prevent>
           <table>
             <thead><tr><th>Date</th><th>Release</th><th>HH</th><th>HV</th><th>NISAR granule</th></tr></thead>
@@ -80,6 +80,6 @@ export default function Explorer() {
           </table>
         </div>
       </details>
-    </div></div>
+    </div>
   )
 }

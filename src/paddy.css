@@ -1,12 +1,13 @@
-.paddy { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
+.paddy { display: grid; grid-template-columns: auto 1fr; gap: 1rem 1.5rem; align-items: start; margin-top: 0.5rem; }
 .paddy figure { margin: 0; }
-.paddy img { display: block; width: min(100%, 16rem); height: auto; image-rendering: pixelated; border: 1px solid var(--rule); }
-.paddy .key { list-style: none; padding: 0; margin: 0.5rem 0 0; display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; font-size: 0.875rem; color: var(--soft); }
-.paddy .key i { display: inline-block; width: 0.75rem; height: 0.75rem; margin-right: 0.4rem; border: 1px solid var(--rule); }
-.paddy .chart { margin: 0; }
-.paddy .chart .g { opacity: 0.35; }
-.nums { margin: 0; display: grid; gap: 0.5rem; }
-.nums div { display: flex; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.4rem; }
-.nums dt { color: var(--soft); }
-.nums dd { margin: 0; font-weight: 600; text-align: right; }
-.paddy .verdict { margin: 0; }
+.paddy img { display: block; width: clamp(9rem, 14vw, 13rem); height: auto; image-rendering: pixelated; border-radius: 0.5rem; box-shadow: 0 20px 50px -20px rgb(42 21 51 / 0.5); }
+.paddy .key { list-style: none; padding: 0; margin: 0.6rem 0 0; display: grid; gap: 0.15rem; font-size: 0.8125rem; color: var(--soft); }
+.paddy .key li { margin: 0; }
+.paddy .key i { display: inline-block; width: 0.65rem; height: 0.65rem; margin-right: 0.4rem; border-radius: 2px; }
+.tiles { margin: 0; display: grid; gap: 0.6rem; }
+.tiles div { border-top: 1px solid var(--rule); padding-top: 0.45rem; }
+.tiles dt { font-size: 0.8125rem; color: var(--soft); }
+.tiles dd { margin: 0; font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 650; font-stretch: 78%; line-height: 1.05; }
+.tiles small { font-size: 0.9rem; font-weight: 500; color: var(--soft); font-stretch: 100%; }
+.tiles .hot dd { color: var(--paddy); }
+.paddy .tag { grid-column: 1 / -1; }

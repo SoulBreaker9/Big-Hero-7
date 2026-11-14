@@ -16,6 +16,7 @@ type State = {
   covered: boolean // canvas is behind the opaque closing sections
   hover: [number, number] | null
   // low-frequency UI state: fine to select in components
+  ch: number // chapter whose text is on screen; only one at a time, so panels never overlap
   chunk: boolean // the 3D code has arrived
   load: number // share of the 3D assets fetched, 0 to 1
   ready: boolean // the scene has drawn real frames (or cannot: no WebGL)
@@ -30,7 +31,7 @@ type State = {
 
 export const useStore = create<State>(() => ({
   s: 0, pass: 0, pair: 0, covered: false, hover: null,
-  chunk: false, load: 0, ready: false, revealed: false, userPass: LAST, layer: 0, kind: 0, pin: null, series: null, probeError: null,
+  ch: 0, chunk: false, load: 0, ready: false, revealed: false, userPass: LAST, layer: 0, kind: 0, pin: null, series: null, probeError: null,
 }))
 
 /** Interferogram that starts at this pass, or the nearest earlier one. */

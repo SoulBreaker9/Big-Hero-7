@@ -1,12 +1,11 @@
-.sband .sband-tag { border-left: 3px solid var(--paddy); padding-left: 0.6rem; font-weight: 600; color: var(--ink); }
-.sband-stats { margin: 1rem 0; display: grid; gap: 0.5rem; }
-.sband-stats div { background: var(--paper); border: 1px solid var(--rule); padding: 0.5rem 0.75rem; }
-.sband-stats dt { font-size: 0.8125rem; color: var(--soft); }
-.sband-stats dd { margin: 0.1rem 0 0; font-weight: 650; }
-.sband-stats b { color: var(--paddy); font-weight: 700; }
-.sband-wrap { margin: 1rem 0; background: var(--paper); border: 1px solid var(--rule); overflow-x: auto; }
-.sband-wrap table { white-space: normal; width: 100%; font-size: 0.8125rem; line-height: 1.4; }
-.sband-wrap th, .sband-wrap td { vertical-align: top; }
-.sband-wrap tbody th { position: static; background: none; white-space: nowrap; }
-.sband-wrap .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-@media (max-width: 40rem) { .sband-wrap table { min-width: 34rem; } }
+.duel { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 0.5rem 0 0.75rem; }
+.duel div { border-top: 2px solid var(--ink); padding-top: 0.6rem; }
+.duel .s { border-color: var(--paddy); }
+.duel .band { font-size: 0.8125rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--soft); }
+.duel b { display: block; font-size: clamp(3.2rem, 6vw, 5.5rem); font-stretch: 75%; font-weight: 650; line-height: 1; }
+.duel .s b { color: var(--paddy); }
+.duel small { font-size: 0.35em; margin-left: 0.15em; font-weight: 500; }
+.duel svg { display: block; width: 100%; height: 1.5rem; margin-top: 0.5rem; overflow: visible; }
+.duel path { fill: none; stroke: var(--ink); stroke-width: 2; stroke-dasharray: 400; stroke-dashoffset: 400; transition: stroke-dashoffset 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.6s; }
+.duel .s path { stroke: var(--paddy); }
+.on .duel path { stroke-dashoffset: 0; }

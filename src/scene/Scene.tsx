@@ -17,16 +17,19 @@ const SINK = 0.16 // how far the surface drops when the clay is fully squeezed (
 const SAT = [3.0, 2.35] // centre of NISAR's reflector, right of and above the block
 const SAT_SCALE = 0.12 // scene units per metre: far larger than life next to a 134 km block
 
-// One camera/underground state per story section. The block alternates sides, always opposite the text panel (see data-side in App).
+// One camera/underground state per story chapter. The text always sits on the left, so the block always sits right of centre.
 // azimuth°, polar°, distance, water table y, layer, sink, breath, x offset (share of width, negative = block on the right), look-at y
 const K = [
-  [35, 60, 16.5, -0.3, 0, 0, 0.25, -0.2, -0.55], // hero: block right
-  [-28, 76, 13.5, -0.98, 0, 0, 0, 0.2, -0.75], // overdraft: block left, closer, water falls
-  [24, 82, 11.5, -1.08, 0, 1, 0, -0.2, -0.7], // sand and clay: block right, closest
-  [34, 40, 15.5, -1.08, 1, 1, 0, 0.27, -0.55], // blind spot: interferograms on top
-  [0, 26, 15, -1.08, 0, 1, 0, -0.2, -0.55], // the year: block right
-  [-38, 70, 16.5, -0.7, 0, 0.5, 1, 0.2, -0.55], // the test: block left, breathing
-  [0, 2, 14, -0.7, 0, 0.5, 0, -0.2, -0.55], // explorer: straight down, block right
+  [35, 60, 16.5, -0.3, 0, 0, 0.25, -0.2, -0.55], // hero
+  [-28, 72, 17.5, -0.98, 0, 0, 0, -0.22, -0.75], // overdraft: low and close, the water falls, wells run dry
+  [24, 82, 13.5, -1.08, 0, 1, 0, -0.23, -0.7], // sand and clay: eye level with the strata
+  [34, 40, 15.5, -1.08, 1, 1, 0, -0.21, -0.55], // blind spot: interferograms on top
+  [0, 26, 16.5, -1.08, 0, 1, 0, -0.21, -0.55], // the year: looking down as the season plays
+  [-14, 20, 15.5, -1.08, 0, 1, 0, -0.22, -0.5], // rice: close over the peak pass
+  [-38, 70, 16.5, -0.7, 0, 0.5, 1, -0.2, -0.55], // method: the block breathes
+  [22, 38, 15, -0.7, 1, 0.5, 0, -0.21, -0.55], // S-band: interferograms again
+  [-22, 48, 15.5, -1.0, 2, 0.8, 0.5, -0.21, -0.6], // wells: the ground-motion layer
+  [0, 2, 14, -0.7, 0, 0.5, 0, -0.2, -0.55], // explorer: straight down
 ]
 const INTRO = [80, 34, 34, -0.3, 0, 0, 0.25, -0.2, -0.55] // where the camera waits behind the loader
 
@@ -303,8 +306,10 @@ function World() {
     g.waterMat.uniforms.uLevel.value = w
     g.waterMat.uniforms.uT.value = g.beamMat.uniforms.uT.value = c.t
 
-    const z = reducedMotion ? 0 : 5 - ((c.t * 0.07) % 1) * 10 // south to north, like the real ascending pass
+    // south to north like the real ascending pass, over the block only, so it never drifts across the text
+    const run = reducedMotion ? 0.5 : (c.t * 0.06) % 1, z = 2.6 - run * 5.2
     sat.current.position.z = z
+    sat.current.scale.setScalar(Math.min(Math.sqrt(Math.sin(run * Math.PI) * 1.6), 1) + 1e-3) // grows in at the edges, so it never pops
     sat.current.visible = !exploring // it would fly across the map being read
     g.beamMat.uniforms.uOn.value = THREE.MathUtils.smoothstep(SIZE / 2 + 0.25 - Math.abs(z), 0, 0.5) // the radar is only on over the block
     const su = g.slabMat.uniforms
