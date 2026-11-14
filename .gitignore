@@ -31,3 +31,5 @@ blender/textures
 *.blend1
 
 __pycache__/
+
+ppt_of_prev_winner_teams
