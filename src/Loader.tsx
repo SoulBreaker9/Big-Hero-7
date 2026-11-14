@@ -29,7 +29,8 @@ export default function Loader() {
       timer = window.setTimeout(() => setGone(true), 1300)
     }
     raf = requestAnimationFrame(tick)
-    return () => { cancelAnimationFrame(raf); clearTimeout(timer); lockScroll(false) }
+    const giveUp = window.setTimeout(() => useStore.setState({ ready: true }), 25000) // a slow GPU or network still gets the story
+    return () => { cancelAnimationFrame(raf); clearTimeout(timer); clearTimeout(giveUp); lockScroll(false) }
   }, [])
 
   if (gone) return null

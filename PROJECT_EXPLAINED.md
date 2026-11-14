@@ -22,9 +22,10 @@ What the site does not do yet is measure the sinking. It shows the pictures, the
  build time                                   run time (browser, static site)
  ──────────                                   ───────────────────────────────
  ASF search API ─┐                            index.html ─ main chunk (React, GSAP, Lenis, 130 KB gz)
- browse PNGs ────┤ scripts/build_data.py       │  App.tsx     text, scroll → store, panel fades
+ browse PNGs ────┤ scripts/build_data.py       │  App.tsx     9 chapters, scroll → store (ch)
                                                │  Loader      counter tied to real asset loading
-                                               │  bits.tsx    Rise, Read, Count (text motion)
+                                               │  bits.tsx    Chapter, Rise, Count (text motion)
+                                               │  Sources     challenge + research references
                                                │  motion.ts   Lenis on GSAP's ticker
                                                │  Waves       the two-wavelength diagram
                  ▼                             │  Hud.tsx     header + pass ruler
@@ -47,8 +48,8 @@ Terms: **R3F** is React Three Fiber, a React renderer for three.js. **Atlas** is
 
 ### One interaction traced: the user scrolls into "the year"
 
-1. `src/App.tsx:useScrollStory` listens for `scroll`, and once per animation frame measures the seven `[data-scene]` sections. It finds which one holds the middle of the screen and how far through it we are.
-2. It writes `s` (section as a float), `pass` (0 to 23) and `pair` to the store with `useStore.setState`. No React component subscribes to these, so nothing re-renders.
+1. `src/App.tsx:useScrollStory` listens for `scroll`, and once per animation frame measures the ten `[data-scene]` chapters. It finds which one holds the middle of the screen and how far through it we are.
+2. It writes `s` (chapter as a float), `pass` (0 to 23) and `pair` to the store with `useStore.setState`. No React component subscribes to these, so nothing re-renders. It also writes `ch`, the chapter whose text is on screen; only `Chapter` components select it, and only when it changes.
 3. `src/scene/Scene.tsx:World` subscribed to the store with `useStore.subscribe(invalidate)`, so the write asks three.js for one frame. The canvas runs in `frameloop="demand"` mode and draws only when asked.
 4. In `useFrame`, the scene reads `useStore.getState()`, eases its own copy of each value toward the target (`cur += (target - cur) * (1 - exp(-dt*5))`), interpolates the camera pose between the keyframes in `K`, and sets shader uniforms. If anything is still moving, it calls `invalidate()` again.
 5. The slab's fragment shader (`slabFrag`) samples two neighbouring tiles of the atlas and crossfades by the fractional part of `pass`.
@@ -80,7 +81,7 @@ State lives in one Zustand store (`src/store.ts`). Per-frame fields (`s`, `pass`
 | Custom GLSL shaders for the block | Atlas crossfade, the dry-well and squeezed-clay logic, the water table and the wet band on the walls all run on the GPU for free | Standard lit materials: cannot do the per-instance logic |
 | Blender model + PBR for the satellite | NISAR is built by a bpy script from the published numbers (12 m reflector, F/D 0.75, 9 m boom) and lit by a small studio environment, so the gold foil and solar cells look like the real thing | Primitives with baked vertex colours (the first version): read as a toy. NASA's own model: heavier, and not our work |
 | Zustand | Transient reads without re-rendering React | React context: would re-render the tree on every scroll frame |
-| Lenis + GSAP ScrollTrigger | Smooth wheel scrolling, headlines that rise word by word, text that lights up as you read it, panels that fade in and out as the story moves. Lenis runs on GSAP's ticker so scroll, tweens and the camera share one frame. Touch stays native. About 52 KB gzipped in the main chunk | The earlier native scroll plus damped lerp: no smoothing, no choreography. Framer Motion: a second animation library for nothing |
+| Lenis + GSAP + CSS transitions | Smooth wheel scrolling (Lenis), count-up numbers (GSAP), and chapter text that enters and leaves on a CSS class (`.on`), so the browser runs the text motion off the main thread. Lenis runs on GSAP's ticker so scroll, tweens and the camera share one frame. Touch stays native. About 52 KB gzipped in the main chunk | The earlier native scroll plus damped lerp: no smoothing, no choreography. Framer Motion: a second animation library for nothing |
 | React Bits, adapted (`src/bits.tsx`) | `SplitText`, `ScrollReveal` and `CountUp` cut to about 60 lines on React-rendered spans, because the originals are 1,300 lines and GSAP's SplitText rewrites DOM that React owns. Credited in the file header (MIT + Commons Clause) | Pasting the originals: more code, and `CountUp` needs the `motion` package |
 | WebP atlases | One request and one texture per layer for 24 images | 24 separate files: 24 requests and texture switches. KTX2: no encoder on the build machine |
 | Web worker + OffscreenCanvas | Decoding a 2560² image and reading pixels stays off the main thread | Main-thread canvas: a visible stall on first click |
@@ -102,7 +103,9 @@ State lives in one Zustand store (`src/store.ts`). Per-frame fields (`s`, `pass`
 |---|---|
 | `index.html` | Shell, meta tags, font preload |
 | `src/main.tsx` | React entry |
-| `src/App.tsx` | All story text, scroll-to-store logic, lazy scene mount, WebGL error boundary |
+| `src/App.tsx` | The nine chapters, scroll-to-store logic, lazy scene mount, WebGL error boundary |
+| `src/bits.tsx` | `Chapter` (fixed text stage shown only while active), `Rise`, `Count` |
+| `src/Sources.tsx` | Every challenge resource (NASA, CSA, CONAE) with the NASA non-endorsement line, then our data and papers |
 | `src/store.ts` | Zustand store, coordinate helpers, `pick()` and the worker wiring |
 | `src/scene/Scene.tsx` | The whole 3D scene: camera keyframes, shaders, instancing, render loop |
 | `src/Hud.tsx` | Fixed header and the ruler of real pass dates |
@@ -120,7 +123,7 @@ State lives in one Zustand store (`src/store.ts`). Per-frame fields (`s`, `pass`
 | `scripts/build_wells.py` | Joins published district well levels with the radar numbers. Writes `wells.json` |
 | `src/Paddy.tsx`, `src/SBand.tsx`, `src/Wells.tsx` | The three sections that show those results |
 | `SUBMISSION.md` | Paste-ready answers for the Space Apps form |
-| `scripts/build_deck.cjs` | Generates the 7-slide deck |
+| `scripts/build_deck.cjs` | Generates the 7-slide deck from `docs/deck-*.jpg` (frames of the live site) |
 | `vercel.json` | Immutable cache header for hashed assets |
 | `HANDOFF.md` | Reasoning, sources, next steps |
 
@@ -235,3 +238,26 @@ How to run: `python3 scripts/build_motion.py --selftest`, then each build script
 **Why not use well data for 2025 to 2026?** The CGWB portal was in maintenance mode when we tried. The wells are published district figures for 1996 to 2018, so the comparison shows direction and size of storage loss but cannot test the radar.
 
 **What did AI do?** Claude (via Claude Code) helped with ideation, research, analysis code, site code, text and the deck. This is disclosed in the site footer and in `SUBMISSION.md`.
+
+## 12. The motion redesign (14 Nov 2026)
+
+### Simple version
+
+The old page read like a report: long paragraphs, and text from two sections on screen together, sometimes with the satellite flying across it. Now it plays like a short film. Each chapter shows one idea, usually one big number or one small drawing, beside the 3D block, and the old chapter clears before the next one arrives. Think of slides in a projector: one slide at a time, never two on the screen together.
+
+### Technical version
+
+- **One stage per chapter.** Each `Chapter` (`src/bits.tsx`) is a tall, empty scroll track. Its text sits on a `position: fixed` stage. `useScrollStory` writes the active chapter to `store.ch`, and only the stage whose index matches gets `.on`. Inactive stages are `visibility: hidden` and `inert`, so they cannot be seen, clicked or tabbed to.
+- **No overlap by timing.** Leaving text fades in 0.2 s. Entering text starts after 0.35 s, so two chapters never show at once (`src/index.css`, `.fx`).
+- **Camera and satellite.** `K` in `Scene.tsx` has one keyframe per chapter, and every frame puts the block right of centre, because the text is always on the left. The satellite flies only over the block and grows in and out at the ends of its pass instead of popping.
+- **Text budget.** Each chapter has a headline, one visual and at most one short line. Detail moved into the visuals: bars for pumped against recharged water, a sand-and-clay diagram, the wave drawing, a scrubbing month, and well-depth gauges.
+- **Removed:** the "What this does not show yet" section. Its caveats live on in short notes next to the claims they qualify, and in section 8 of this file.
+- **Sources** list every resource the challenge names, each with its link and the NASA non-endorsement statement.
+- **Loader safety.** If the 3D scene has neither drawn nor failed after 25 seconds, the loader lifts anyway and the story reads without waiting (`Loader.tsx`).
+- **Phones (taller than wide).** The block sits at the top and each chapter becomes one glass card at the bottom. The card scrolls inside itself if it is too long.
+
+### Likely developer questions
+
+- **Why fixed stages instead of normal flowing sections?** Flowing sections overlap while they scroll past each other and the 3D block. One fixed stage shown at a time makes overlap impossible by construction, not by careful spacing.
+- **Is the hidden text accessible?** Only the active chapter is in the accessibility tree (`inert` on the rest). Headlines keep their full text as an `aria-label`, so the split words are not read one by one. With reduced motion, the transitions become plain fades.
+- **How was it checked?** By type check, production build, and screenshots of every chapter at 1440×900 and 390×844. A scripted fast-scroll check once caught two chapters readable at the same moment, so the fade timings above were separated. The check was not rerun after that: software 3D rendering overloaded the laptop.
