@@ -32,8 +32,4 @@ Other data: ESA Copernicus Sentinel-2 L2A (open, via Element84 Earth Search on A
 
 ## Use of AI
 
-Built with Claude (Anthropic's AI assistant, via Claude Code). Claude helped with ideation, research, data analysis, code, text, visual design and the slide deck. All figures come from the cited public sources, and the analysis scripts in `scripts/` are open so every number can be re-run. No NASA logos or branding are used.
-
-## Not done yet
-
-Real ground motion from the GUNW HDF5 files with ionosphere and troposphere layers (the motion layer uses browse images); measured S-band data from ISRO Bhoonidhi (the S-band section is projected from L-band); an official paddy map (the rice test uses a Sentinel-2 crop-calendar proxy); the CGWB station-level well series (the portal was in maintenance mode).
+The project originated from team-driven ideation, with concepts further refined through AI-assisted exploration. Claude (Anthropic, via Claude Code) and ChatGPT (OpenAI, via Codex) served as execution companions, supporting research, analysis, coding, and design. AI augmented the team's capabilities but never replaced human reasoning, creativity, or decision-making; all core ideas, technical judgments, and final decisions remained team-driven. All figures are backed by cited public sources, with reproducible analysis scripts available in `scripts/`. No NASA logos or official branding are used.
